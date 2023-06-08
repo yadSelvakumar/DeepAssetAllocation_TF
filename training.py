@@ -8,7 +8,7 @@ import scipy as sp
 import sys
 import os
 
-# TODO: add types to everything
+# TODO: add correct types to everything
 
 # ------------------------------- TENSORFLOW SETUP ------------------------------- #
 # WARNING: May slow down training, depends on hardware
@@ -19,7 +19,7 @@ print('Using device', DEVICE)
 
 # ------------------------------- FILE LOCATIONS ------------------------------- #
 
-FILES_PATH = '.' # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
+FILES_PATH = '.'  # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
 FIGURES_PATH = '/figures'
 RESULTS_PATH = '/results'
 SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")
@@ -175,6 +175,8 @@ def initialize_neuralnet(weights):
 
     return model
 
+# TODO: Create test class after optimizing
+
 
 @tf.function(reduce_retracing=True)
 def value_prime_repeated_fn(epsilon, value_prime_func):
@@ -187,18 +189,8 @@ def value_prime_repeated_fn(epsilon, value_prime_func):
 
 @tf.function(reduce_retracing=True, input_signature=[tf.TensorSpec(shape=(NUM_SAMPLES, BATCH_SIZE_OPTIM, PHI_1_T.shape[0]), dtype=tf.float32), tf.TensorSpec(shape=(NUM_SAMPLES, BATCH_SIZE_OPTIM, 1), dtype=tf.float32), tf.TensorSpec(shape=(NUM_SAMPLES, NUM_ASSETS), dtype=tf.float32)])
 def value_function_MC_V(states_prime, value_prime, alpha):
-    risk = tf.matmul(states_prime, HETA_R_TRANSPOSE)
-    riskFree = tf.matmul(states_prime, HETA_RF_TRANPOSE)
-    # alpha_rf = alpha[:,0]
-    # alpha_re = alpha[:,1:]
-    # rf_exp = tf.exp(rf)
-    # re = rf_exp * (tf.exp(r))
-    # omega = rf_exp*alpha_rf + tf.matmul(re, tf.expand_dims(alpha_re, axis=2))
-
     Rf = tf.expand_dims(tf.exp(states_prime[:, :, 0]), 2)
     R = Rf * tf.exp(states_prime[:, :, 1:NUM_ASSETS])
-    # Rf = tf.exp(rf)
-    # R = Rf * tf.exp(r)
     omega = tf.matmul(tf.concat((Rf, R), 2), tf.expand_dims(alpha, -1))
 
     return GAMMA_INVERSE*tf.pow(omega*value_prime, GAMMA_MINUS)
@@ -222,12 +214,7 @@ def optimal_alpha_step(states_prime, value_prime, alpha, learning_rate, optimize
 
     grads_eu = tape.gradient(loss, alpha)
     alpha_grad = gradient_projection(alpha, grads_eu)
-    # tf.keras.backend.update(alpha, alpha - learning_rate * alpha_grad)
     optimizer.apply_gradients(zip([alpha_grad], [alpha]))
-
-    # loss = get_loss(states_prime, value_prime, alpha)
-    # grads_eu = tf.gradients(loss, alpha)
-    # grads, _ = tf.clip_by_global_norm(grads_eu, clip_norm=0.5)
 
     return loss
 
@@ -287,9 +274,6 @@ def optimal_alpha_start(states_prime, value_prime, alpha, optimizer):
 
     grads_eu = tape.gradient(loss, alpha)
     alpha_grad = gradient_projection(alpha, grads_eu)
-    # loss = get_loss(states_prime, value_prime, alpha)
-    # grads_eu = tf.gradients(loss, alpha)
-    # grads, _ = tf.clip_by_global_norm(grads_eu, clip_norm=0.5)
     return alpha_grad
 
 
@@ -298,17 +282,12 @@ def find_optimal_alpha_start(alpha, value_prime_func, learning_rate, optimizer):
     states_prime, value_prime = value_prime_repeated_fn(epsilon, value_prime_func)
 
     alpha_grad = optimal_alpha_start(states_prime, value_prime, alpha, optimizer)
-    # tf.keras.backend.update(alpha, alpha - learning_rate * alpha_grad)
-
     optimizer.apply_gradients(zip([alpha_grad], [alpha]))
-
-    return
 
 
 @tf.function
 def clip_alpha(alpha):
     return tf.clip_by_value(alpha, ALPHA_BOUNDS[0], ALPHA_BOUNDS[1])
-
 
 
 @tf.function
@@ -391,11 +370,9 @@ def train_neuralnet(value_prime_neuralnet, train_data, number_epochs_neuralnet, 
     gradients_of_primes = training_start(value_prime_neuralnet, weights, train_data)
     optimizer.apply_gradients(zip(gradients_of_primes, weights))
 
-    for i in trange(number_epochs_neuralnet):
+    for _ in trange(number_epochs_neuralnet):
         mean_loss_prime = training_step(value_prime_neuralnet, weights, train_data, optimizer)
         losses_primes.append(mean_loss_prime)
-        # if i%10==0:
-        # print(mean_loss_prime)
 
     print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
     return losses_primes
@@ -413,7 +390,6 @@ def plot_loss(losses, title, filename):
 def normalize(alpha: tf.Variable) -> tf.Tensor:
     num_assets = alpha.shape[1]
     alpha_normalized = alpha - (tf.reduce_sum(alpha, axis=1, keepdims=True) - 1) / num_assets
-    # alpha/tf.reduce_sum(alpha,1)
     return alpha_normalized
 
 
@@ -462,7 +438,6 @@ def jv_allocation_period(period, simulated_states):
 
 
 def get_states_simulation(periods, initial_state):
-    # tf.keras.utils.set_random_seed(1)
     state_simulations = np.zeros((periods, NUM_STATES))
     state_simulations[0, :] = initial_state
     error_epsilon = np.random.multivariate_normal(np.zeros(NUM_VARS), np.eye(NUM_VARS), size=periods)
@@ -478,19 +453,9 @@ def initial_prime_function(z): return tf.ones((z.shape[0], 1))
 
 def run_model():
     global SIMULATED_STATES, SIMULATED_STATES_MATRIX
-    # # ---------------------- xx  This bit to restart traning xx --------------------- #
-    # load_options = tf.saved_model.LoadOptions(allow_partial_checkpoint = False,experimental_io_device = "/job:localhost",experimental_skip_checkpoint = False)
-    # value_neuralnet_fn = tf.keras.models.load_model(f"{FILES_PATH + RESULTS_PATH}/value_{199}",options = load_options,compile = False)
-    # prime_functions = [value_neuralnet_fn]
-    # for i in range(200):
-    #     prime_functions.append(value_neuralnet_fn)
-    # weights = prime_functions[-1].trainable_variables
-    # ------------------------------------ xx ------------------------------------ #
-
     prime_functions = [initial_prime_function]
 
     SIMULATED_STATES, SIMULATED_STATES_MATRIX = get_states_simulation(NUM_SAMPLES, UNCONDITIONAL_MEAN)
-    # initial_alpha = tf.Variable(0.5*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
     initial_alpha = tf.Variable(1/(1+NUM_ASSETS)*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
 
     # # This is the first training period so it's set already

@@ -6,7 +6,6 @@ import numpy as np
 import scipy as sp
 import sys
 
-# TODO: tf.data
 # ------------------------------- TENSORFLOW SETUP ------------------------------- #
 # WARNING: May slow down training, depends on hardware
 tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
@@ -40,11 +39,9 @@ def unpack_mars_settings(MARS_FILE):
     PHI_1 = parameters["Phi1_C"][0][0]
     SIGMA_VARS = parameters["Sigma"][0][0]
 
-    # TODO: better name for P, profitability?
     P = settings["p"][0][0][0][0]
     NUM_PERIODS = 50  # 185  # settings["allocationSettings"][0][0][0][0][1][0][0]
 
-    # TODO: better naming for these 2
     A0 = tf.cast(MARS_FILE["A0"], tf.float32)
     A1 = tf.cast(MARS_FILE["A1"], tf.float32)
 
@@ -68,7 +65,6 @@ def get_model_parameters(settings, MARS_FILE):
     SIGMA_DIAGONAL_SQRT_VARS = np.sqrt(np.diag(SIGMA_VARS)[:NUM_VARS])
     SIGMA_DIAGONAL = np.tile(SIGMA_DIAGONAL_SQRT_VARS, P)
 
-    # TODO: reach, effieciency? Better names
     HETA_RF = np.zeros((1, NUM_STATES))
     HETA_RF[0, 0] = 1
 
@@ -134,7 +130,6 @@ def value_prime_repeated_fn(z, epsilon, value_prime_func):
 
 @tf.function(reduce_retracing=True)
 def value_function(states_prime, value_prime, alpha):
-    # TODO: all the names after r, and rf
     risk = tf.matmul(states_prime, HETA_R_TRANSPOSE)
     riskFree = tf.matmul(states_prime, HETA_RF_TRANPOSE)
 
@@ -236,7 +231,6 @@ def find_optimal_alpha_start(z, alpha, value_prime_func, optimizer):
 def clip_alpha(alpha):
     return tf.clip_by_value(alpha, ALPHA_BOUNDS[0], ALPHA_BOUNDS[1])
 
-# TODO: better name for j
 
 
 @tf.function
@@ -245,7 +239,6 @@ def calculate_V(j):
 
 
 @tf.function
-# TODO: better name for jv
 def jv_allocation_period(period, simulated_states):
     return tf.expand_dims(A0[:, period], axis=0) + tf.matmul(simulated_states, A1[:, :, period], transpose_b=True)
 

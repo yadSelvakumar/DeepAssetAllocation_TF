@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(dirname $BASH_SOURCE)
+
 input() {
     echo '----------------------------------------------'
     echo "$1"
