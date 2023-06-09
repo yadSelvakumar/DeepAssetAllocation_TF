@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 
 parser = ArgumentParser('DeepAssetAllocation')
 # parser.add_argument("--nt", type=int, default=2, help="depth of networks")
@@ -10,17 +10,17 @@ parser = ArgumentParser('DeepAssetAllocation')
 # parser.add_argument("--max_epochs_NN", type=int, default=1024, help="maximum number of epochs for neural network training")
 # parser.add_argument("--lr_NN", type=float, default=1e-3, help="learning rate for neural network training")
 # parser.add_argument("--num_samples_JV", type=int, default=1024, help="number of samples to validate JV solution")
-# parser.add_argument("--num_train", type=int, default=4096, help="number of training trajectories")
-parser.add_argument('--out_dir', type=str, default='test', help='directory for result')
-# parser.add_argument('--out_file', type=str, default='test', help='base file name for result')
-# parser.add_argument('--figures_out_dir', type=str, default='figures', help='directory for figures')
+parser.add_argument("--num_samples", type=int, default=4096, help="number of training trajectories")
+parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
+parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
+parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+parser.add_argument('--settings_file', type=str, default='settings/ResultsForYad.mat', help='Matlab settings file')
 # parser.add_argument('--constraint', type=str, choices=['no_short_selling', 'budget', 'box'], default='budget', help='constraints for alpha')
 
-args = parser.parse_args()
+args: Namespace  = parser.parse_args()
 
-# TODO: main file run with arguments
-# TODO: dynamic dir system
+# TODO: Explain usage, testing and setup on README.md
 
 if __name__ == '__main__':
-    from training import main
-    main(args)
+    from src.training import train_model
+    train_model(args)

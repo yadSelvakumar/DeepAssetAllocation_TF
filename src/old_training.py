@@ -8,8 +8,6 @@ import scipy as sp
 import sys
 import os
 
-# TODO: add correct types to everything
-
 # ------------------------------- TENSORFLOW SETUP ------------------------------- #
 # WARNING: May slow down training, depends on hardware
 tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
@@ -19,7 +17,7 @@ print('Using device', DEVICE)
 
 # ------------------------------- FILE LOCATIONS ------------------------------- #
 
-FILES_PATH = '.'  # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
+FILES_PATH = '..'  # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
 FIGURES_PATH = '/figures'
 RESULTS_PATH = '/results'
 SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")
@@ -31,7 +29,6 @@ os.makedirs(FILES_PATH + RESULTS_PATH, exist_ok=True)
 # -------------------------- FULCRUM MODEL SETTINGS -------------------------- #
 
 
-# TODO: move util functions to utils.py
 def unpack_mars_settings(MARS_FILE):
     settings, parameters = MARS_FILE["settings"], MARS_FILE["parameters"]
     GAMMA = np.float32(settings["allocationSettings"][0][0][0][0][0][0][0])
@@ -175,7 +172,6 @@ def initialize_neuralnet(weights):
 
     return model
 
-# TODO: Create test class after optimizing
 
 
 @tf.function(reduce_retracing=True)
