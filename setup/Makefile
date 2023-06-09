@@ -8,7 +8,7 @@ condasource:
 	source ~/.bashrc && conda -V
 
 update:
-	sudo apt update && sudo apt upgrade && sudo apt install nvtop
+	sudo apt update && sudo apt upgrade
 	sudo ubuntu-drivers autoinstall
 
 condaenv:
@@ -30,7 +30,7 @@ tfcpu:
 	python3 -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
 
 tfgpu:
-	nvidia-smi && gnome-terminal -- nvtop
+	nvidia-smi
 	python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
 
 pipinstall:
