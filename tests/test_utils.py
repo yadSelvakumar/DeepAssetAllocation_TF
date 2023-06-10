@@ -1,5 +1,5 @@
 import tensorflow as tf
-from utils import unpack_mars_settings, get_model_settings
+from src.utils import unpack_mars_settings, get_model_settings
 
 def test_unpack_mars(mars_settings, mars_file):
     GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS = mars_settings

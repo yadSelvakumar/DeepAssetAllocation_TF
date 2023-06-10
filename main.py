@@ -14,12 +14,10 @@ parser.add_argument("--num_samples", type=int, default=4096, help="number of tra
 parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
 parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
 parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
-parser.add_argument('--settings_file', type=str, default='settings/ResultsForYad.mat', help='Matlab settings file')
+parser.add_argument('--settings_file', type=str, default='settings/ResultsForYad.mat', help='matlab settings file')
 # parser.add_argument('--constraint', type=str, choices=['no_short_selling', 'budget', 'box'], default='budget', help='constraints for alpha')
 
 args: Namespace  = parser.parse_args()
-
-# TODO: Explain usage, testing and setup on README.md
 
 if __name__ == '__main__':
     from src.training import train_model

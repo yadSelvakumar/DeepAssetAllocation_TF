@@ -1,7 +1,20 @@
 from argparse import Namespace
 from scipy.io import loadmat
 import tensorflow as tf
+import numpy as np
 import utils
+
+# TODO: Move to own file
+class Training:
+    def get_states_simulation(self, num_samples, initial_state, phi0, phi1, covariance_matrix, num_states, num_vars):
+        state_simulations = np.zeros((num_samples, num_states))
+        state_simulations[0, :] = initial_state
+        error_epsilon = np.random.multivariate_normal(np.zeros(num_vars), np.eye(num_vars), size=num_samples)
+        for n in range(num_samples-1):
+            state_simulations[n+1, :] = phi0.T + phi1@state_simulations[n, :] + covariance_matrix@error_epsilon[n, :]
+        states = tf.constant(state_simulations, tf.float32)
+        states_matrix = tf.constant(tf.expand_dims(states, axis=1) @ phi1.T + phi0.T, tf.float32)
+        return states, states_matrix
 
 def train_model(args: Namespace):
     # --- Settings ---
@@ -26,6 +39,12 @@ def train_model(args: Namespace):
 
     # --- End Settings ---
 
+    # TODO: temporal name
+    var = Training()
+
     @tf.function
     def initial_prime_function(z): return tf.ones((z.shape[0], 1))
     prime_functions = [initial_prime_function]
+
+    SIMULATED_STATES, SIMULATED_STATES_MATRIX = var.get_states_simulation(NUM_SAMPLES, UNCONDITIONAL_MEAN)
+    initial_alpha = tf.Variable(1/(1+NUM_ASSETS)*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)

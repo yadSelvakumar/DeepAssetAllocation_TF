@@ -3,17 +3,42 @@ import tensorflow as tf
 import scipy.io as sio
 import pytest
 
+
 @pytest.fixture
 def model_settings(mars_settings, mars_file):
     return old_get_model_parameters(mars_settings, mars_file)
+
 
 @pytest.fixture
 def mars_settings(mars_file):
     return old_unpack_mars_settings(mars_file)
 
+
 @pytest.fixture
 def mars_file():
     return sio.loadmat('settings/ResultsForYad.mat')
+
+
+@pytest.fixture
+def states_and_parameters(mars_settings, model_settings):
+    _, NUM_VARS, _, NUM_STATES, _, _, PHI_0, PHI_1, _, _, _ = mars_settings
+    _, _, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, _, _, _ = model_settings
+
+    NUM_SAMPLES = 1024
+    np.random.seed(0)
+    states, matrix = old_get_states_simulation(NUM_SAMPLES, UNCONDITIONAL_MEAN, PHI_0, PHI_1, COVARIANCE_MATRIX, NUM_STATES, NUM_VARS)
+    return states, matrix, NUM_SAMPLES, UNCONDITIONAL_MEAN, PHI_0, PHI_1, COVARIANCE_MATRIX, NUM_STATES, NUM_VARS
+
+
+def old_get_states_simulation(num_samples, initial_state, phi0, phi1, covariance_matrix, num_states, num_vars):
+    state_simulations = np.zeros((num_samples, num_states))
+    state_simulations[0, :] = initial_state
+    error_epsilon = np.random.multivariate_normal(np.zeros(num_vars), np.eye(num_vars), size=num_samples)
+    for n in range(num_samples-1):
+        state_simulations[n+1, :] = phi0.T + phi1@state_simulations[n, :] + covariance_matrix@error_epsilon[n, :]
+    states = tf.constant(state_simulations, tf.float32)
+    return states, tf.constant(tf.expand_dims(states, axis=1) @ phi1.T + phi0.T, tf.float32)
+
 
 def old_unpack_mars_settings(MARS_FILE):
     settings, parameters = MARS_FILE["settings"], MARS_FILE["parameters"]
