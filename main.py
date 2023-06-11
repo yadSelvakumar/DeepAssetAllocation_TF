@@ -15,7 +15,8 @@ parser.add_argument("--decay_steps", type=int, default=25_000, help="decay of le
 parser.add_argument("--decay_rate", type=float, default=.5, help="decay of learning rate for training")
 
 parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
-parser.add_argument("--num_epochs", type=int, default=40, help="alpha number of epochs")
+parser.add_argument("--num_epochs_alpha", type=int, default=40, help="alpha number of epochs")
+parser.add_argument("--num_epochs", type=int, default=100_000, help="number of epochs training")
 parser.add_argument('--alpha_bounds', type=str, choices=['no_short_selling', 'budget', 'box'], default='budget', help='constraints for alpha')
 
 parser.add_argument('--model_output_size', type=int, default=1, help='output size of the model')

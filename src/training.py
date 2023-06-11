@@ -1,5 +1,6 @@
 from logging import Logger
 from typing import Callable
+from matplotlib import pyplot as plt
 from tensorflow import keras as K
 from argparse import Namespace
 from scipy.io import loadmat
@@ -53,7 +54,7 @@ class TrainingInitializer:
 
 class AlphaModel(K.Model):
     def __init__(self, alpha, alpha_bounds, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
-        super(AlphaModel, self).__init__()
+        super().__init__()
         self.alpha = alpha
         self.alpha_bounds = alpha_bounds
 
@@ -112,8 +113,8 @@ class AlphaModel(K.Model):
     # TODO: This should be the call
     @tf.function
     def optimal_alpha_step(self, states_prime, value_prime):
-        self.alpha.assign(self.normalize(self.alpha))
-        with tf.GradientTape(persistent=True) as tape:
+        self.normalize_alpha()
+        with tf.GradientTape() as tape:
             loss = self.get_loss(states_prime, value_prime)
 
         grads_eu = tape.gradient(loss, self.alpha)
@@ -140,10 +141,10 @@ class AlphaModel(K.Model):
         return loss_epoch, eu_epoch, alpha_epoch
 
     @tf.function
-    def normalize(self, alpha: tf.Variable) -> tf.Tensor:
-        num_assets = alpha.shape[1]
-        alpha_normalized = alpha - (tf.reduce_sum(alpha, axis=1, keepdims=True) - 1) / num_assets
-        return alpha_normalized
+    def normalize_alpha(self) -> None:
+        num_assets = self.alpha.shape[1]
+        alpha_normalized = self.alpha - (tf.reduce_sum(self.alpha, axis=1, keepdims=True) - 1) / num_assets
+        self.alpha.assign(alpha_normalized)
 
     @tf.function
     def gradient_projection(self, grad_alpha: tf.Tensor) -> tf.Tensor:
@@ -164,7 +165,7 @@ class AlphaModel(K.Model):
 
     @tf.function
     def initialize_optimal_alpha(self, states_prime, value_prime):
-        self.alpha.assign(self.normalize(self.alpha))
+        self.normalize_alpha()
         with tf.GradientTape() as tape:
             loss = self.get_loss(states_prime, value_prime)
 
@@ -257,11 +258,20 @@ class TrainingModel(K.Sequential):
 def clip_alpha(alpha, bounds):
     return tf.clip_by_value(alpha, *bounds)
 
+def plot_loss(losses, title, filepath):
+    plt.figure()
+    plt.plot(losses)
+    plt.title(title)
+    plt.savefig(filepath)
+    plt.close()
 
 # TODO: also reduce parameters with passing settings
 # Notice that alpha_JV is only for logging purposes
 
-def train_period_model(log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, weights: list[tf.Tensor]):
+def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, weights: list[tf.Tensor]):
+    log.info('Initializing alpha optimizer')
+    log.info(f'PERIOD:{period}/50')
+
     NUM_SAMPLES = args.num_samples
 
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
@@ -274,7 +284,7 @@ def train_period_model(log: Logger, args: Namespace, prime_function: Callable, a
     data = np.zeros((NUM_SAMPLES, num_states+1))
 
     start_time = time()
-    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs)
+    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha)
 
     alpha_neuralnet = clip_alpha(alpha_neuralnet, alpha_model.alpha_bounds)
     alpha_JV = clip_alpha(alpha_JV, alpha_model.alpha_bounds)
@@ -300,6 +310,24 @@ def train_period_model(log: Logger, args: Namespace, prime_function: Callable, a
 
     # TODO: Add plotting here
 
+    # ------------------- Plotting -------------------
+
+    plot_loss(loss, f'Optim loss, period {period}', f'{args.figures_dir}/losses_period_{period}.png')
+
+    assets = ["Cash", "Equity", "Bond", "Commodity"]
+    plt.figure(figsize=(12, 10))
+    for j in range(alpha_model.alpha.shape[1]):
+        plt.subplot(2, 2, j+1)
+        plt.plot(alpha_neuralnet[:, j], color='tab:green', label='NN', linewidth=1.0)
+        plt.plot(alpha_JV[:, j], color='black', linestyle='--', label='JV', linewidth=0.8)
+
+        plt.title(f'{assets[j]}')
+        if j == 0:
+            plt.legend()
+    plt.savefig(f'{args.figures_dir}/allocations_period_{period}.png')
+
+    # ------------------------------------------------
+
     log.info('Initializing neural network')
 
     lr_optim_model = K.optimizers.schedules.ExponentialDecay(args.learning_rate, model_decay_steps, args.decay_rate, staircase=True)
@@ -307,19 +335,23 @@ def train_period_model(log: Logger, args: Namespace, prime_function: Callable, a
 
     log.info('Training neural network')
 
-    model.train(data, args.num_epochs)
+    model.compile(optimizer=model.optimizer, loss='mse')
+    losses = model.train(data, args.num_epochs)
+
+    plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
+    model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
     return model, alpha_neuralnet
 
 
 def train_model(args: Namespace):
     # --- Settings ---
-    utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
-
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
     GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
+
+    utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
 
     log = utils.create_logger(args.logs_dir, 'training')
 
@@ -328,7 +360,6 @@ def train_model(args: Namespace):
         return value
 
     DEVICE = set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
-    SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")
 
     NUM_SAMPLES = set_var('Number of Samples', args.num_samples)
     BATCH_SIZE = set_var('Batch Size:', args.batch_size)
@@ -354,26 +385,17 @@ def train_model(args: Namespace):
     alpha = tf.Variable(1/(1+NUM_ASSETS)*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
     alpha_JV_unc = init.jv_allocation_period(0, SIMULATED_STATES)
 
-    log.info('Initializing alpha optimizer')
-    log.info(f'PERIOD:0/{NUM_PERIODS}')
-
     alpha_optm = AlphaModel(alpha, ALPHA_BOUNDS, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
-    model, last_alpha = train_period_model(log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
-    model.save(f"{args.results_dir}/value_0", options=SAVE_OPTIONS)
+    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
     prime_functions.append(model)
 
     for period in range(1, NUM_PERIODS):
-        log.info('Initializing alpha optimizer')
-        log.info(f'PERIOD:{period}/{NUM_PERIODS}')
-
         weights = model.trainable_variables
 
         start_time = time()
-        model, last_alpha = train_period_model(log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
+        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
         time_taken = time() - start_time
-
-        model.save(f"{args.results_dir}/value_{period}", options=SAVE_OPTIONS)
 
         expected_time = time_taken * (NUM_PERIODS - period) / 60
         log.info(f'Period {period} took {time_taken/60} minutes')

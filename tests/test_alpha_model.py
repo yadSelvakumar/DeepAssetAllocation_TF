@@ -8,7 +8,7 @@ ShapesType = tuple[tuple[int, int, int], list[int], list[int]]
 
 
 def test_normalize(normalized_alpha: tf.Variable, alpha_model: AlphaModel, tf_test: tf.test.TestCase):
-    tf_test.assertAllClose(normalized_alpha, alpha_model.normalize(alpha_model.alpha))
+    tf_test.assertAllClose(normalized_alpha, alpha_model.normalize_alpha(alpha_model.alpha))
 
 
 def test_get_loss(loss: tf.Tensor, alpha_model: AlphaModel, value_prime_repeat: VPrimeType, tf_test: tf.test.TestCase):

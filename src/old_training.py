@@ -17,17 +17,13 @@ print('Using device', DEVICE)
 
 # ------------------------------- FILE LOCATIONS ------------------------------- #
 
-FILES_PATH = '..'  # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
+FILES_PATH = '.'  # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
 FIGURES_PATH = '/figures'
 RESULTS_PATH = '/results'
 SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")
 # LOAD_OPTIONS = tf.saved_model.LoadOptions(allow_partial_checkpoint=False, experimental_io_device="/job:localhost", experimental_skip_checkpoint=False)
 
-os.makedirs(FILES_PATH + FIGURES_PATH, exist_ok=True)
-os.makedirs(FILES_PATH + RESULTS_PATH, exist_ok=True)
-
 # -------------------------- FULCRUM MODEL SETTINGS -------------------------- #
-
 
 def unpack_mars_settings(MARS_FILE):
     settings, parameters = MARS_FILE["settings"], MARS_FILE["parameters"]
@@ -75,9 +71,12 @@ MARS_FILE = sp.io.loadmat(f'{FILES_PATH}/settings/ResultsForYad.mat')
 SETTINGS = unpack_mars_settings(MARS_FILE)
 PARAMETERS = get_model_parameters(SETTINGS, MARS_FILE)
 
+os.makedirs(FILES_PATH + FIGURES_PATH, exist_ok=True)
+os.makedirs(FILES_PATH + RESULTS_PATH, exist_ok=True)
+
 # ---------------------------- SIMULATION SETTINGS --------------------------- #
 
-NUM_SAMPLES = 16 ** 3
+NUM_SAMPLES = 512 # 16 ** 3
 
 # ------------------------------ OPTIM SETTINGS ------------------------------ #
 
@@ -89,7 +88,7 @@ NUM_EPOCHS_FIRST_OPTIM = 40  # 100
 ITER_PER_EPOCH_OPTIM = 50
 INVERSE_ITER_PER_EPOCH_OPTIM = tf.constant(1/ITER_PER_EPOCH_OPTIM, dtype=tf.float32)
 
-BATCH_SIZE_OPTIM = 1024
+BATCH_SIZE_OPTIM = 32 # 1024
 INVERSE_BATCH_SIZE = 1/BATCH_SIZE_OPTIM
 
 INITIAL_LEARNING_RATE_OPTIM = 1e-3
@@ -109,8 +108,8 @@ ACTIVATION_FUNCTION_OUTPUT = "linear"
 INITIAL_GUESS = 1
 
 BATCH_SIZE_NEURALNET = 1024
-NUM_EPOCHS_FIRST_NEURALNET = 100_000
-NUM_EPOCHS_NEURALNET = 100_000
+NUM_EPOCHS_FIRST_NEURALNET = 100 # 100_000
+NUM_EPOCHS_NEURALNET = 100 # 100_000
 
 INITIAL_LEARNING_RATE_NEURALNET = 1e-4
 LEARNING_RATE_DECAY_NEURALNET = 0.5
