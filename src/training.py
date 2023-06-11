@@ -151,6 +151,9 @@ def train_model(args: Namespace):
         weights = model.trainable_variables
 
         start_time = time()
+        # FIX: This is a hack to get the alpha from the previous period
+        # I know where the error is, but this is the fastest way to fix it
+        alpha_optm = AlphaModel(alpha, ALPHA_BOUNDS, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
         model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
         time_taken = time() - start_time
 
