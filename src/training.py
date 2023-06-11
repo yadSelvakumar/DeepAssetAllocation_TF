@@ -1,3 +1,5 @@
+from logging import Logger
+from typing import Callable
 from tensorflow import keras as K
 from argparse import Namespace
 from scipy.io import loadmat
@@ -46,21 +48,14 @@ class TrainingInitializer:
         cash = 1 - tf.expand_dims(tf.reduce_sum(JV_original, axis=1), axis=1)
         return tf.concat([cash, JV_original], 1)
 
-# TODO: The following
-# 2. Another temporal class for the alpha model loop, not initialization
-# 3. Add layers and initialize tensorflow training model
-# 4. Change parameters to get settings
+# TODO: Change parameters to get settings
 
 
 class AlphaModel(K.Model):
-    def __init__(self, period, alpha, initial_alpha, alpha_bounds, lr_optim, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
+    def __init__(self, alpha, alpha_bounds, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
         super(AlphaModel, self).__init__()
-        alpha.assign(initial_alpha)
-
-        self.period = period
         self.alpha = alpha
         self.alpha_bounds = alpha_bounds
-        self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
 
         self.num_samples = num_samples
         self.num_assets = num_assets
@@ -79,7 +74,10 @@ class AlphaModel(K.Model):
         self.transposed_cov_matrix = tf.transpose(cov_matrix)
         self.sim_states_matrix = sim_states_matrix
 
-    def initialize(self, value_prime_func):
+    def initialize(self, value_prime_func, initial_alpha, lr_optim):
+        self.alpha.assign(initial_alpha)
+        self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
+
         epsilon = tf.random.normal(self.epsilon_shape)
         states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
 
@@ -115,7 +113,7 @@ class AlphaModel(K.Model):
     @tf.function
     def optimal_alpha_step(self, states_prime, value_prime):
         self.alpha.assign(self.normalize(self.alpha))
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             loss = self.get_loss(states_prime, value_prime)
 
         grads_eu = tape.gradient(loss, self.alpha)
@@ -134,7 +132,7 @@ class AlphaModel(K.Model):
             states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
 
             loss = self.optimal_alpha_step(states_prime, value_prime)
-            alpha_clipped = tf.clip_by_value(self.alpha, *self.alpha_bounds)
+            alpha_clipped = clip_alpha(self.alpha, self.alpha_bounds)
 
             loss_epoch += loss
             eu_epoch += self.get_eu(states_prime, value_prime, alpha_clipped)
@@ -204,7 +202,7 @@ class TrainingModel(K.Sequential):
 
             # Output layer
             self.add(K.layers.Dense(args.model_output_size, kernel_initializer=K.initializers.Constant(
-                value=kernel_weights[num_hidden_layers]), bias_initializer=K.initializers.Constant(value=bias_weights[num_hidden_layers]), activation=args.activation_function_output))
+                value=kernel_weights[args.num_hidden_layers]), bias_initializer=K.initializers.Constant(value=bias_weights[args.num_hidden_layers]), activation=args.activation_function_output))
 
         else:
             # Hidden layers
@@ -255,6 +253,65 @@ class TrainingModel(K.Sequential):
         return value_prime_gradients
 
 
+@tf.function
+def clip_alpha(alpha, bounds):
+    return tf.clip_by_value(alpha, *bounds)
+
+
+# TODO: also reduce parameters with passing settings
+# Notice that alpha_JV is only for logging purposes
+
+def train_period_model(log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, weights: list[tf.Tensor]):
+    NUM_SAMPLES = args.num_samples
+
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
+
+    lr_optim_alpha = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, alpha_decay_steps, args.decay_rate_alpha, staircase=True)
+    alpha_model.initialize(prime_function, initial_alpha, lr_optim_alpha)
+
+    log.info('Training alpha')
+
+    data = np.zeros((NUM_SAMPLES, num_states+1))
+
+    start_time = time()
+    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs)
+
+    alpha_neuralnet = clip_alpha(alpha_neuralnet, alpha_model.alpha_bounds)
+    alpha_JV = clip_alpha(alpha_JV, alpha_model.alpha_bounds)
+
+    log.info(f'Done...took: {(time() - start_time)/60} mins')
+
+    mean_abs_diff = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV), axis=0)
+    max_alpha_diff = 100*np.max(np.abs(alpha_neuralnet-alpha_JV), axis=0)
+    mean_diff = 100*np.mean(alpha_neuralnet-alpha_JV, axis=0)
+    total_mean_abs_error = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV))
+
+    log.info(f'Mean abs diff (ppts): {mean_abs_diff}, Max alpha difference (ppts): {max_alpha_diff}, Mean diff (ppts): {mean_diff}, Loss = {loss[-1]}, Total mean abs error: {total_mean_abs_error}')
+
+    # TODO: can tensorflow all this numpy, and get it from alpha_optm
+    V = (alpha_model.gamma_minus * J) ** alpha_model.gamma_minus_inverse
+
+    data[:, :num_states] = simulated_states
+    data[:, -1] = V[:, 0]
+
+    data = tf.cast(data[:NUM_SAMPLES], tf.float32)
+
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
+
+    # TODO: Add plotting here
+
+    log.info('Initializing neural network')
+
+    lr_optim_model = K.optimizers.schedules.ExponentialDecay(args.learning_rate, model_decay_steps, args.decay_rate, staircase=True)
+    model = TrainingModel(weights, args, num_states, lr_optim_model)
+
+    log.info('Training neural network')
+
+    model.train(data, args.num_epochs)
+
+    return model, alpha_neuralnet
+
+
 def train_model(args: Namespace):
     # --- Settings ---
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
@@ -262,7 +319,7 @@ def train_model(args: Namespace):
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
     GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
-    COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, _, HETA_RF, HETA_R = utils.get_model_settings(SETTINGS, MARS_FILE)
+    COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
     log = utils.create_logger(args.logs_dir, 'training')
 
@@ -271,6 +328,7 @@ def train_model(args: Namespace):
         return value
 
     DEVICE = set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
+    SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")
 
     NUM_SAMPLES = set_var('Number of Samples', args.num_samples)
     BATCH_SIZE = set_var('Batch Size:', args.batch_size)
@@ -299,52 +357,30 @@ def train_model(args: Namespace):
     log.info('Initializing alpha optimizer')
     log.info(f'PERIOD:0/{NUM_PERIODS}')
 
-    lr_optim = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, args.decay_steps_alpha, args.decay_rate_alpha, staircase=True)
-    alpha_optm = AlphaModel(0, alpha, alpha_JV_unc, ALPHA_BOUNDS, lr_optim, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
+    alpha_optm = AlphaModel(alpha, ALPHA_BOUNDS, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
-    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
-
-    alpha_optm.initialize(prime_functions[0])
-
-    log.info('Training alpha')
-
-    data = np.zeros((NUM_SAMPLES, NUM_STATES+1))
-
-    start_time = time()
-    alpha_neuralnet, J, loss = alpha_optm(prime_functions[0], args.num_epochs)
-
-    @tf.function
-    def clip_alpha(alpha):
-        return tf.clip_by_value(alpha, *ALPHA_BOUNDS)
-
-    alpha_neuralnet = clip_alpha(alpha_neuralnet)
-    alpha_JV = clip_alpha(alpha_JV_unc)
-
-    print(f'Done...took: {(time() - start_time)/60} mins')
-    print(
-        f'Mean abs diff (ppts): {100*np.mean(np.abs(alpha_neuralnet-alpha_JV),axis = 0)}, Max alpha difference (ppts): {100*np.max(np.abs(alpha_neuralnet-alpha_JV),axis = 0)}, Mean diff (ppts): {100*np.mean(alpha_neuralnet-alpha_JV,axis = 0)}, Loss = {loss[-1]}, Total mean abs error: {100*np.mean(np.abs(alpha_neuralnet-alpha_JV))}')
-
-    # TODO: can tensorflow all this numpy, and get it from alpha_optm
-    V = (alpha_optm.gamma_minus * J) ** alpha_optm.gamma_minus_inverse
-
-    data[:, :NUM_STATES] = SIMULATED_STATES
-    data[:, -1] = V[:, 0]
-
-    data = tf.cast(data[:NUM_SAMPLES], tf.float32)
-
-    # TODO: Add plotting here
-
-    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
-
-    log.info('Initializing neural network')
-
-    lr_optim = K.optimizers.schedules.ExponentialDecay(args.learning_rate, args.decay_steps, args.decay_rate, staircase=True)
-    model = TrainingModel([], args, NUM_STATES, lr_optim)
-    
-    log.info('Training neural network')
-
-    model.train(data, args.num_epochs)
-
+    model, last_alpha = train_period_model(log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
+    model.save(f"{args.results_dir}/value_0", options=SAVE_OPTIONS)
     prime_functions.append(model)
 
-    log.info('Done')
+    for period in range(1, NUM_PERIODS):
+        log.info('Initializing alpha optimizer')
+        log.info(f'PERIOD:{period}/{NUM_PERIODS}')
+
+        weights = model.trainable_variables
+
+        start_time = time()
+        model, last_alpha = train_period_model(log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
+        time_taken = time() - start_time
+
+        model.save(f"{args.results_dir}/value_{period}", options=SAVE_OPTIONS)
+
+        expected_time = time_taken * (NUM_PERIODS - period) / 60
+        log.info(f'Period {period} took {time_taken/60} minutes')
+        log.info(f'Expected time remaining: {expected_time} minutes')
+
+        prime_functions.append(model)
+
+        K.backend.clear_session()
+
+    log.info('Training complete')

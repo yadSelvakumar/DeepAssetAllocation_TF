@@ -5,12 +5,14 @@ parser.add_argument("--num_samples", type=int, default=4096, help="number of tra
 parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
 
 parser.add_argument("--learning_rate_alpha", type=float, default=1e-3, help="learning rate for alpha training")
-parser.add_argument("--decay_steps_alpha", type=float, default=.5, help="decay of learning rate steps for alpha training")
-parser.add_argument("--decay_rate_alpha", type=int, default=400, help="decay of learning rate for alpha training")
+parser.add_argument("--first_decay_steps_alpha", type=int, default=400, help="first period decay of learning rate steps for alpha training")
+parser.add_argument("--decay_steps_alpha", type=int, default=500, help="decay of learning rate steps for alpha training")
+parser.add_argument("--decay_rate_alpha", type=float, default=.5, help="decay of learning rate for alpha training")
 
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate for training")
-parser.add_argument("--decay_steps", type=float, default=.5, help="decay of learning rate steps for training")
-parser.add_argument("--decay_rate", type=int, default=20_000, help="decay of learning rate for training")
+parser.add_argument("--first_decay_steps", type=int, default=20_000, help="first period decay of learning rate steps for training")
+parser.add_argument("--decay_steps", type=int, default=25_000, help="decay of learning rate steps for training")
+parser.add_argument("--decay_rate", type=float, default=.5, help="decay of learning rate for training")
 
 parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
 parser.add_argument("--num_epochs", type=int, default=40, help="alpha number of epochs")

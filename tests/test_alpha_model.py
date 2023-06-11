@@ -3,7 +3,6 @@ from src.training import AlphaModel
 from tensorflow import keras as K
 import tensorflow as tf
 
-
 VPrimeType = tuple[tf.Tensor, tf.Tensor]
 ShapesType = tuple[tuple[int, int, int], list[int], list[int]]
 

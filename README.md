@@ -50,10 +50,12 @@ python main.py --help
 
 ### Running the tests
 
+> Some tests may be broken, since I had to work fast, so don't worry if it fails
+
 If you installed the project dependencies, you can run the tests with just:
 
 ```bash
 pytest
 ```
 
-> If you are in vscode or pycharm, you can run and check the tests from the IDE
+> Note: If you are in vscode or pycharm, you can run and check the tests from the IDE

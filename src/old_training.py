@@ -121,7 +121,7 @@ LEARNING_RATE_STAIRCASE_NEURALNET = True
 # ------------------------------ CONSTANTS ------------------------------ #
 
 _, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
-GAMMA_MINUS, GAMMA_INVERSE, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, _, HETA_RF, HETA_R = PARAMETERS
+GAMMA_MINUS, GAMMA_INVERSE, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = PARAMETERS
 
 NUM_ASSETS = NUM_ASSETS+1
 
@@ -129,9 +129,6 @@ PHI_0_T = tf.constant(PHI_0.T, dtype=tf.float32)
 PHI_1_T = tf.constant(PHI_1.T, dtype=tf.float32)
 
 COVARIANCE_MATRIX_TRANSPOSE = tf.constant(COVARIANCE_MATRIX.T, dtype=tf.float32)
-
-HETA_R_TRANSPOSE = tf.constant(HETA_R.T, dtype=tf.float32)
-HETA_RF_TRANPOSE = tf.constant(HETA_RF.T, dtype=tf.float32)
 
 PRIME_ARRAY_SHAPE = tf.constant([NUM_SAMPLES * BATCH_SIZE_OPTIM, NUM_STATES], dtype=tf.int32)
 PRIME_REPEATED_SHAPE = tf.constant([NUM_SAMPLES, BATCH_SIZE_OPTIM, 1], dtype=tf.int32)
@@ -244,7 +241,6 @@ def optimal_alpha_sgd(value_prime_func, alpha, number_epochs, optimizer):
         approx_time = tf.math.ceil((tf.timestamp()-start_time) * tf.cast((number_epochs-iter_alpha), tf.float64))
         start_time = tf.timestamp()
 
-        # TODO: minimize calculations of printing, by only printing steps
         if iter_alpha % 4 == 0:
             tf.print(iter_alpha, '/', number_epochs, "(", approx_time, "secs )", summarize=1, output_stream=sys.stdout)
         if it % LEARNING_RATE_STEP_FIRST_OPTIM == 0 and it > 0:
@@ -470,7 +466,6 @@ def run_model():
 
 
 if __name__ == '__main__':
-    # TODO: Add expected time of the whole training
     with tf.device(DEVICE):
         start_time = time()
         run_model()
