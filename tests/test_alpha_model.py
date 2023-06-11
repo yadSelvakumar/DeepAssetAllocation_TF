@@ -1,5 +1,5 @@
 from typing import Callable
-from src.training import AlphaModel
+from src.alpha_model import AlphaModel
 from tensorflow import keras as K
 import tensorflow as tf
 

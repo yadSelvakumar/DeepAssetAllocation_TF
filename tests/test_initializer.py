@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from src.training import TrainingInitializer
+from src.training_initializer import TrainingInitializer
 
 def test_get_states_simulation(simulated_states: tuple[tf.Tensor, tf.Tensor], initializer: TrainingInitializer, tf_test: tf.test.TestCase):
     np.random.seed(0)

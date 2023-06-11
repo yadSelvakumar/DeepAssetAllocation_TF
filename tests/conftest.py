@@ -1,12 +1,10 @@
 from tensorflow import keras as K
+from src.training_initializer import TrainingInitializer
+from src.alpha_model import AlphaModel
 import tensorflow as tf
 import scipy.io as sio
 import numpy as np
 import pytest
-
-from src.training import AlphaModel, TrainingInitializer
-
-# TODO: separate corresponding methods into own file
 
 
 @pytest.fixture
