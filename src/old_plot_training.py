@@ -15,7 +15,7 @@ print('Using device', DEVICE)
 
 # ------------------------------- FILE LOCATIONS ------------------------------- #
 
-FILES_PATH = '.' # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
+FILES_PATH = '..' # '/run/user/12406999/gvfs/smb-share:server=fam-ldn-nas01.local,share=fulcrum/Macro Research/yad/deep_dynamic_programming/model_checks/MARS_v1NN_v3'
 FIGURES_PATH = '/figures'
 RESULTS_PATH = '/results'
 SAVE_OPTIONS = tf.saved_model.SaveOptions(experimental_io_device="/job:localhost")

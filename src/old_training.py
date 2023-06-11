@@ -263,7 +263,6 @@ def optimal_alpha_sgd(value_prime_func, alpha, number_epochs, optimizer):
 
 @tf.function
 def optimal_alpha_start(states_prime, value_prime, alpha, optimizer):
-
     alpha.assign(normalize(alpha))
     with tf.GradientTape() as tape:
         loss = get_loss(states_prime, value_prime, alpha)
@@ -273,7 +272,7 @@ def optimal_alpha_start(states_prime, value_prime, alpha, optimizer):
     return alpha_grad
 
 
-def find_optimal_alpha_start(alpha, value_prime_func, learning_rate, optimizer):
+def find_optimal_alpha_start(alpha, value_prime_func, optimizer):
     epsilon = tf.random.normal(EPSILON_SHAPE)
     states_prime, value_prime = value_prime_repeated_fn(epsilon, value_prime_func)
 
@@ -406,14 +405,16 @@ def train_period(period, alpha_JV_unc, start_alpha, number_epochs_optim, number_
     else:
         lr_optim = tfk.optimizers.schedules.ExponentialDecay(INITIAL_LEARNING_RATE_OPTIM, LEARNING_RATE_STEP_OPTIM, LEARNING_RATE_DECAY_OPTIM, staircase=LEARNING_RATE_STAIRCASE_OPTIM)
         lr_neural_net = tfk.optimizers.schedules.ExponentialDecay(INITIAL_LEARNING_RATE_NEURALNET, LEARNING_RATE_STEP_NEURALNET, LEARNING_RATE_DECAY_NEURALNET, staircase=LEARNING_RATE_STAIRCASE_NEURALNET)
+
     optimizer_alpha = tfk.optimizers.Adam(lr_optim)
     optimizer_neuralnet = tfk.optimizers.Adam(lr_neural_net)
 
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
-    find_optimal_alpha_start(alpha, prime_functions[period], INITIAL_LEARNING_RATE_OPTIM, optimizer_alpha)
+    find_optimal_alpha_start(alpha, prime_functions[period], optimizer_alpha)
+    exit()
     train_data, last_alphas = get_train_data(period, alpha_JV_unc, prime_functions[period], number_epochs_optim, alpha, optimizer_alpha)
-
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
+
     value_prime_neuralnet = initialize_neuralnet(weights)
 
     value_prime_neuralnet.compile(optimizer=optimizer_neuralnet, loss='mse')
@@ -435,10 +436,10 @@ def jv_allocation_period(period, simulated_states):
 
 def get_states_simulation(periods, initial_state):
     state_simulations = np.zeros((periods, NUM_STATES))
-    state_simulations[0, :] = initial_state
+    state_simulations[0] = initial_state
     error_epsilon = np.random.multivariate_normal(np.zeros(NUM_VARS), np.eye(NUM_VARS), size=periods)
     for n in range(periods-1):
-        state_simulations[n+1, :] = PHI_0.T + PHI_1@state_simulations[n, :] + COVARIANCE_MATRIX@error_epsilon[n, :]
+        state_simulations[n+1] = PHI_0_T + PHI_1@state_simulations[n] + COVARIANCE_MATRIX@error_epsilon[n]
     states = tf.constant(state_simulations, tf.float32)
     return states, tf.constant(tf.expand_dims(states, axis=1) @ PHI_1_T + PHI_0_T, tf.float32)
 
@@ -454,7 +455,7 @@ def run_model():
     SIMULATED_STATES, SIMULATED_STATES_MATRIX = get_states_simulation(NUM_SAMPLES, UNCONDITIONAL_MEAN)
     initial_alpha = tf.Variable(1/(1+NUM_ASSETS)*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
 
-    # # This is the first training period so it's set already
+    # This is the first training period so it's set already
     alpha_JV_unc = jv_allocation_period(0, SIMULATED_STATES)
     last_alphas, weights = train_period(0, alpha_JV_unc, alpha_JV_unc, NUM_EPOCHS_FIRST_OPTIM, NUM_EPOCHS_FIRST_NEURALNET,
                                         initial_alpha, prime_functions, [])

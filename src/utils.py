@@ -25,7 +25,7 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
     A0: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A0"], tf.float32))
     A1: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A1"], tf.float32))
 
-    return GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS
+    return GAMMA, NUM_VARS, NUM_ASSETS + 1, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS
 
 # FIX: type warnings
 def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[float, float, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
