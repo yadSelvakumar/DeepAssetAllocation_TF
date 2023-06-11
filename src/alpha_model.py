@@ -1,9 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras as K
-from src.training import clip_alpha
 
 # TODO: Change parameters to get settings
-
 
 class AlphaModel(K.Model):
     def __init__(self, alpha, alpha_bounds, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
@@ -86,7 +84,7 @@ class AlphaModel(K.Model):
             states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
 
             loss = self.optimal_alpha_step(states_prime, value_prime)
-            alpha_clipped = clip_alpha(self.alpha, self.alpha_bounds)
+            alpha_clipped = tf.clip_by_value(self.alpha, *self.alpha_bounds)
 
             loss_epoch += loss
             eu_epoch += self.get_eu(states_prime, value_prime, alpha_clipped)

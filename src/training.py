@@ -1,13 +1,14 @@
-from logging import Logger
-from typing import Callable
+from src.alpha_model import AlphaModel
+from src.training_initializer import TrainingInitializer
+from src.training_model import TrainingModel
 from matplotlib import pyplot as plt
 from tensorflow import keras as K
 from argparse import Namespace
 from scipy.io import loadmat
+from logging import Logger
+from typing import Callable
 from time import time
-from src.alpha_model import AlphaModel
-from src.training_initializer import TrainingInitializer
-from src.training_model import TrainingModel
+
 import tensorflow as tf
 import numpy as np
 import utils
