@@ -1,11 +1,15 @@
+from tensorflow import keras as K
 from argparse import Namespace
 from scipy.io import loadmat
-from tensorflow import keras as K
+from tqdm import trange
+from time import time
 import tensorflow as tf
 import numpy as np
 import utils
 
 # TODO: Move to own file
+
+
 class TrainingInitializer:
     def __init__(self, num_samples, num_states, num_vars, covariance_matrix, phi0, phi1, a0, a1, initial_state):
         self.num_samples = num_samples
@@ -42,67 +46,126 @@ class TrainingInitializer:
         cash = 1 - tf.expand_dims(tf.reduce_sum(JV_original, axis=1), axis=1)
         return tf.concat([cash, JV_original], 1)
 
+# TODO: The following
+# 2. Another temporal class for the alpha model loop, not initialization
+# 3. Add layers and initialize tensorflow training model
+# 4. Change parameters to get settings
+
 
 class AlphaModel(K.Model):
-    def __init__(self, period, alpha, initial_alpha, lr_optim, epsilon_shape, num_assets, gamma_inverse, gamma_minus, batch_size, sim_states_matrix, cov_matrix, prime_shape, prime_rep_shape):
+    def __init__(self, period, alpha, initial_alpha, alpha_bounds, lr_optim, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
         super(AlphaModel, self).__init__()
         alpha.assign(initial_alpha)
 
         self.period = period
         self.alpha = alpha
+        self.alpha_bounds = alpha_bounds
         self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
-        self.sim_states_matrix = sim_states_matrix
 
+        self.num_samples = num_samples
         self.num_assets = num_assets
         self.inverse_batch_size = 1 / batch_size
 
-        # TODO: Get Gamma, and calculate this to reduce parameters
-        self.gamma_inverse = gamma_inverse
-        self.gamma_minus = gamma_minus
+        self.gamma_minus = 1 - gamma
+        self.gamma_minus_inverse = 1 / self.gamma_minus
+
+        self.iter_per_epoch = iter_per_epoch
+        self.inverse_iter_per_epoch = 1 / self.iter_per_epoch
 
         self.epsilon_shape = epsilon_shape
         self.prime_shape = prime_shape
         self.prime_rep_shape = prime_rep_shape
 
         self.transposed_cov_matrix = tf.transpose(cov_matrix)
+        self.sim_states_matrix = sim_states_matrix
 
-    def call(self, value_prime_func):
+    def initialize(self, value_prime_func):
         epsilon = tf.random.normal(self.epsilon_shape)
         states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
 
-        alpha_grad = self.optimal_alpha_start(states_prime, value_prime)
+        alpha_grad = self.initialize_optimal_alpha(states_prime, value_prime)
         self.optimizer.apply_gradients(zip([alpha_grad], [self.alpha]))
 
-    # TODO: Create test
+    @tf.function
+    def call(self, value_prime_func, number_epochs) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        losses = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
+        EUs = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
+        alphas = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
+        start_time = tf.timestamp()
+        for iter_alpha in tf.range(number_epochs):
+            approx_time = tf.math.ceil((tf.timestamp()-start_time) * tf.cast((number_epochs-iter_alpha), tf.float64))
+            start_time = tf.timestamp()
+
+            # TODO: minimize calculations of printing, by only printing steps
+            if iter_alpha % 4 == 0:
+                tf.print(iter_alpha, '/', number_epochs, "(", approx_time, "secs )", summarize=1)
+            loss_epoch, EU_epoch, alpha_epoch = self.find_optimal_alpha(value_prime_func)
+
+            losses = losses.write(iter_alpha, loss_epoch * self.inverse_iter_per_epoch)
+            EUs = EUs.write(iter_alpha, EU_epoch * self.inverse_iter_per_epoch)
+            alphas = alphas.write(iter_alpha, alpha_epoch * self.inverse_iter_per_epoch)
+
+        return alphas.stack()[-1], EUs.stack()[-1], losses.stack()
+
+    @tf.function(reduce_retracing=True)
+    def get_eu(self, states_prime, value_prime, alpha_clipped):
+        return tf.reduce_mean(self.value_function_MC_V(states_prime, value_prime, alpha_clipped), axis=1)
+
+    # TODO: This should be the call
+    @tf.function
+    def optimal_alpha_step(self, states_prime, value_prime):
+        self.alpha.assign(self.normalize(self.alpha))
+        with tf.GradientTape() as tape:
+            loss = self.get_loss(states_prime, value_prime)
+
+        grads_eu = tape.gradient(loss, self.alpha)
+        alpha_grad = self.gradient_projection(grads_eu)
+        self.optimizer.apply_gradients(zip([alpha_grad], [self.alpha]))
+
+        return loss
+
+    @tf.function
+    def find_optimal_alpha(self, value_prime_func):
+        loss_epoch = .0
+        eu_epoch = tf.zeros((self.num_samples, 1))
+        alpha_epoch = tf.zeros(((self.num_samples, self.num_assets)))
+        for _ in tf.range(self.iter_per_epoch):
+            epsilon = tf.random.normal(self.epsilon_shape)
+            states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
+
+            loss = self.optimal_alpha_step(states_prime, value_prime)
+            alpha_clipped = tf.clip_by_value(self.alpha, *self.alpha_bounds)
+
+            loss_epoch += loss
+            eu_epoch += self.get_eu(states_prime, value_prime, alpha_clipped)
+            alpha_epoch += alpha_clipped
+        return loss_epoch, eu_epoch, alpha_epoch
+
     @tf.function
     def normalize(self, alpha: tf.Variable) -> tf.Tensor:
         num_assets = alpha.shape[1]
         alpha_normalized = alpha - (tf.reduce_sum(alpha, axis=1, keepdims=True) - 1) / num_assets
         return alpha_normalized
 
-    # TODO: Create test
     @tf.function
     def gradient_projection(self, grad_alpha: tf.Tensor) -> tf.Tensor:
         num_assets = self.alpha.shape[1]
         return grad_alpha - tf.reduce_sum(grad_alpha, axis=1, keepdims=True) / num_assets
 
-    # TODO: This definitely needs a another class
     @tf.function(reduce_retracing=True)
-    def value_function_MC_V(self, states_prime, value_prime):
+    def value_function_MC_V(self, states_prime, value_prime, alpha):
         Rf = tf.expand_dims(tf.exp(states_prime[:, :, 0]), 2)
         R = Rf * tf.exp(states_prime[:, :, 1:self.num_assets])
-        omega = tf.matmul(tf.concat((Rf, R), 2), tf.expand_dims(self.alpha, -1))
+        omega = tf.matmul(tf.concat((Rf, R), 2), tf.expand_dims(alpha, -1))
 
-        return self.gamma_inverse*tf.pow(omega*value_prime, self.gamma_minus)
+        return self.gamma_minus_inverse*tf.pow(omega*value_prime, self.gamma_minus)
 
-    # TODO: Create test
     @tf.function(reduce_retracing=True)
-    def get_loss(self, states_prime, value_prime):
-        return -tf.reduce_sum(self.value_function_MC_V(states_prime, value_prime))*self.inverse_batch_size
+    def get_loss(self, states_prime, value_prime) -> tf.Tensor:
+        return -tf.reduce_sum(self.value_function_MC_V(states_prime, value_prime, self.alpha))*self.inverse_batch_size
 
-    # TODO: Create test
     @tf.function
-    def optimal_alpha_start(self, states_prime, value_prime):
+    def initialize_optimal_alpha(self, states_prime, value_prime):
         self.alpha.assign(self.normalize(self.alpha))
         with tf.GradientTape() as tape:
             loss = self.get_loss(states_prime, value_prime)
@@ -111,7 +174,6 @@ class AlphaModel(K.Model):
         alpha_grad = self.gradient_projection(grads_eu)
         return alpha_grad
 
-    # TODO: Create test
     @tf.function(reduce_retracing=True)
     def value_prime_repeated_fn(self, epsilon, value_prime_func):
         states_prime = self.sim_states_matrix + tf.matmul(epsilon, self.transposed_cov_matrix)
@@ -121,8 +183,76 @@ class AlphaModel(K.Model):
         return states_prime, value_prime_repeated
 
 
-class TrainingModel(K.Model):
-    pass
+class TrainingModel(K.Sequential):
+    def __init__(self, weights, args, num_states, lr_optim):
+        super().__init__()
+        self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
+        self.num_states = num_states
+        self.batch_size = args.batch_size
+        self.indexes = tf.range(args.num_samples)
+
+        if weights:
+            # ,weights[14].numpy(),weights[16].numpy(),weights[18].numpy(),weights[20].numpy(),weights[22].numpy(),weights[24].numpy(),weights[26].numpy(),weights[28].numpy(),weights[30].numpy(),weights[32].numpy()
+            kernel_weights = weights[0].numpy(), weights[2].numpy(), weights[4].numpy()  # , weights[6].numpy(), weights[8].numpy(), weights[10].numpy(), weights[12].numpy()
+            # ,weights[13].numpy(),weights[15].numpy(),weights[17].numpy(),weights[19].numpy(),weights[21].numpy(),weights[23].numpy(),weights[25].numpy(),weights[27].numpy(),weights[29].numpy(),weights[31].numpy()
+            bias_weights = weights[1].numpy(), weights[3].numpy(), weights[5].numpy()  # , weights[7].numpy(), weights[9].numpy(), weights[11].numpy(), weights[13].numpy()
+
+            # Hidden layers
+            for layer in range(args.num_hidden_layers):
+                self.add(K.layers.Dense(args.num_neurons, activation=args.activation_function, input_dim=num_states, kernel_initializer=K.initializers.Constant(value=kernel_weights[layer]),
+                                        bias_initializer=K.initializers.Constant(value=bias_weights[layer])))
+
+            # Output layer
+            self.add(K.layers.Dense(args.model_output_size, kernel_initializer=K.initializers.Constant(
+                value=kernel_weights[num_hidden_layers]), bias_initializer=K.initializers.Constant(value=bias_weights[num_hidden_layers]), activation=args.activation_function_output))
+
+        else:
+            # Hidden layers
+            for layer in range(args.num_hidden_layers):
+                self.add(K.layers.Dense(args.num_neurons, activation=args.activation_function, input_dim=num_states))
+
+            # Output layer
+            self.add(K.layers.Dense(args.model_output_size, bias_initializer=K.initializers.Constant(value=args.initial_guess), activation=args.activation_function_output))
+
+    def train(self, train_data, number_epochs):
+        losses_primes = []
+        weights = self.trainable_variables
+
+        gradients_of_primes = self.training_start(train_data)
+        self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
+
+        for _ in trange(number_epochs):
+            mean_loss_prime = self.training_step(train_data)
+            losses_primes.append(mean_loss_prime)
+
+        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
+        return losses_primes
+
+    @tf.function(reduce_retracing=True)
+    def objective_neuralnet(self, data):
+        random_indexes = tf.random.shuffle(self.indexes)[:self.batch_size]
+        data_batch = tf.gather(data, random_indexes)
+
+        states_batch = data_batch[:, :self.num_states]
+        value_prime_optimal_batch = tf.expand_dims(data_batch[:, -1], axis=1)
+        error_value_prime_neuralnet = tf.reduce_mean(tf.square(value_prime_optimal_batch - self(states_batch)))
+
+        return error_value_prime_neuralnet
+
+    @tf.function
+    def training_step(self, data):
+        with tf.GradientTape() as tape:
+            value_prime_loss = self.objective_neuralnet(data)
+        value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
+        self.optimizer.apply_gradients(zip(value_prime_gradients, self.trainable_variables))
+        return value_prime_loss
+
+    @tf.function()
+    def training_start(self, data):
+        with tf.GradientTape() as tape:
+            value_prime_loss = self.objective_neuralnet(data)
+        value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
+        return value_prime_gradients
 
 
 def train_model(args: Namespace):
@@ -131,27 +261,24 @@ def train_model(args: Namespace):
 
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
-    _, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
-    GAMMA_MINUS, GAMMA_INVERSE, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, _, HETA_RF, HETA_R = utils.get_model_settings(SETTINGS, MARS_FILE)
+    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
+    COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, _, HETA_RF, HETA_R = utils.get_model_settings(SETTINGS, MARS_FILE)
 
     log = utils.create_logger(args.logs_dir, 'training')
 
-    DEVICE: str = '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0'
-    log.info(f'Using device {DEVICE}')
+    def set_var(name, value):
+        log.info(f'{name}: {value}')
+        return value
 
-    NUM_SAMPLES = args.num_samples
-    log.info(f'Number of samples: {NUM_SAMPLES}')
+    DEVICE = set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
 
-    BATCH_SIZE = args.batch_size
-    log.info(f'Batch size: {BATCH_SIZE}')
+    NUM_SAMPLES = set_var('Number of Samples', args.num_samples)
+    BATCH_SIZE = set_var('Batch Size:', args.batch_size)
+    ALPHA_BOUNDS = set_var('Alpha bounds:', ([-5, -5, -5, -5], [5, 5, 5, 5]))
 
-    # TODO: This are only used once, try to inline
-    EPSILON_SHAPE = tf.constant((NUM_SAMPLES, BATCH_SIZE, NUM_VARS), dtype=tf.int32)
-    PRIME_ARRAY_SHAPE = tf.constant([NUM_SAMPLES * BATCH_SIZE, NUM_STATES], dtype=tf.int32)
-    PRIME_REPEATED_SHAPE = tf.constant([NUM_SAMPLES, BATCH_SIZE, 1], dtype=tf.int32)
-    log.info(f'EPSILON_SHAPE: {EPSILON_SHAPE}')
-    log.info(f'PRIME_ARRAY_SHAPE: {PRIME_ARRAY_SHAPE}')
-    log.info(f'PRIME_REPEATED_SHAPE: {PRIME_REPEATED_SHAPE}')
+    EPSILON_SHAPE = set_var('Epsilon Shape:', tf.constant((NUM_SAMPLES, BATCH_SIZE, NUM_VARS), dtype=tf.int32))
+    PRIME_ARRAY_SHAPE = set_var('Prime Array Shape:', tf.constant([NUM_SAMPLES * BATCH_SIZE, NUM_STATES], dtype=tf.int32))
+    PRIME_REPEATED_SHAPE = set_var('Prime Repeated Shape:', tf.constant([NUM_SAMPLES, BATCH_SIZE, 1], dtype=tf.int32))
 
     # --- End Settings ---
 
@@ -170,10 +297,54 @@ def train_model(args: Namespace):
     alpha_JV_unc = init.jv_allocation_period(0, SIMULATED_STATES)
 
     log.info('Initializing alpha optimizer')
-
     log.info(f'PERIOD:0/{NUM_PERIODS}')
+
+    lr_optim = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, args.decay_steps_alpha, args.decay_rate_alpha, staircase=True)
+    alpha_optm = AlphaModel(0, alpha, alpha_JV_unc, ALPHA_BOUNDS, lr_optim, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
+
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
+
+    alpha_optm.initialize(prime_functions[0])
+
+    log.info('Training alpha')
+
+    data = np.zeros((NUM_SAMPLES, NUM_STATES+1))
+
+    start_time = time()
+    alpha_neuralnet, J, loss = alpha_optm(prime_functions[0], args.num_epochs)
+
+    @tf.function
+    def clip_alpha(alpha):
+        return tf.clip_by_value(alpha, *ALPHA_BOUNDS)
+
+    alpha_neuralnet = clip_alpha(alpha_neuralnet)
+    alpha_JV = clip_alpha(alpha_JV_unc)
+
+    print(f'Done...took: {(time() - start_time)/60} mins')
+    print(
+        f'Mean abs diff (ppts): {100*np.mean(np.abs(alpha_neuralnet-alpha_JV),axis = 0)}, Max alpha difference (ppts): {100*np.max(np.abs(alpha_neuralnet-alpha_JV),axis = 0)}, Mean diff (ppts): {100*np.mean(alpha_neuralnet-alpha_JV,axis = 0)}, Loss = {loss[-1]}, Total mean abs error: {100*np.mean(np.abs(alpha_neuralnet-alpha_JV))}')
+
+    # TODO: can tensorflow all this numpy, and get it from alpha_optm
+    V = (alpha_optm.gamma_minus * J) ** alpha_optm.gamma_minus_inverse
+
+    data[:, :NUM_STATES] = SIMULATED_STATES
+    data[:, -1] = V[:, 0]
+
+    data = tf.cast(data[:NUM_SAMPLES], tf.float32)
+
+    # TODO: Add plotting here
+
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
+
+    log.info('Initializing neural network')
+
     lr_optim = K.optimizers.schedules.ExponentialDecay(args.learning_rate, args.decay_steps, args.decay_rate, staircase=True)
-    alpha_optm = AlphaModel(0, alpha, alpha_JV_unc, lr_optim, EPSILON_SHAPE, NUM_ASSETS, GAMMA_INVERSE, GAMMA_MINUS, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
-    alpha_optm(prime_functions[0])
-     
+    model = TrainingModel([], args, NUM_STATES, lr_optim)
+    
+    log.info('Training neural network')
+
+    model.train(data, args.num_epochs)
+
+    prime_functions.append(model)
+
     log.info('Done')

@@ -1,6 +1,8 @@
 import tensorflow as tf
 from src.utils import unpack_mars_settings, get_model_settings
 
+# TODO: Add types of parameters
+
 def test_unpack_mars(mars_settings, mars_file):
     GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS = mars_settings
     U_GAMMA, U_NUM_VARS, U_NUM_ASSETS, U_NUM_STATES, U_A0, U_A1, U_PHI_0, U_PHI_1, U_SIGMA_VARS, U_P, U_NUM_PERIODS = unpack_mars_settings(mars_file)

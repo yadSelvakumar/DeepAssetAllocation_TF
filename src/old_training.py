@@ -173,7 +173,6 @@ def initialize_neuralnet(weights):
     return model
 
 
-
 @tf.function(reduce_retracing=True)
 def value_prime_repeated_fn(epsilon, value_prime_func):
     states_prime = SIMULATED_STATES_MATRIX + tf.matmul(epsilon, COVARIANCE_MATRIX_TRANSPOSE)
@@ -245,7 +244,7 @@ def optimal_alpha_sgd(value_prime_func, alpha, number_epochs, optimizer):
         approx_time = tf.math.ceil((tf.timestamp()-start_time) * tf.cast((number_epochs-iter_alpha), tf.float64))
         start_time = tf.timestamp()
 
-        # TODO: minimize printing, by only printing steps
+        # TODO: minimize calculations of printing, by only printing steps
         if iter_alpha % 4 == 0:
             tf.print(iter_alpha, '/', number_epochs, "(", approx_time, "secs )", summarize=1, output_stream=sys.stdout)
         if it % LEARNING_RATE_STEP_FIRST_OPTIM == 0 and it > 0:
@@ -411,7 +410,6 @@ def train_period(period, alpha_JV_unc, start_alpha, number_epochs_optim, number_
 
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
     find_optimal_alpha_start(alpha, prime_functions[period], optimizer_alpha)
-    exit()
     train_data, last_alphas = get_train_data(period, alpha_JV_unc, prime_functions[period], number_epochs_optim, alpha, optimizer_alpha)
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
 

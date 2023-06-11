@@ -28,10 +28,8 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
     return GAMMA, NUM_VARS, NUM_ASSETS + 1, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS
 
 # FIX: type warnings
-def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[float, float, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, SIGMA_VARS, P, _ = settings
-    GAMMA_MINUS: float = 1 - GAMMA
-    GAMMA_INVERSE: float = 1 / GAMMA_MINUS
+def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    _, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, SIGMA_VARS, P, _ = settings
     COVARIANCE_MATRIX: tf.Tensor = tf.concat([tf.cast(tf.linalg.cholesky(SIGMA_VARS[:NUM_VARS, :NUM_VARS]), tf.float32), tf.zeros((NUM_STATES-NUM_VARS, NUM_VARS), tf.float32)], axis=0)
 
     tf.test.TestCase().assertAllClose(tf.matmul(COVARIANCE_MATRIX, COVARIANCE_MATRIX, transpose_b=True), MARS_FILE["parameters"]["Sigma_vC"][0][0])
@@ -47,7 +45,7 @@ def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[float
     HETA_R: tf.Tensor = tf.zeros((NUM_ASSETS, NUM_STATES))
     HETA_R = tf.tensor_scatter_nd_update(HETA_R, [[i, i+1] for i in range(NUM_ASSETS)], tf.ones(NUM_ASSETS))
 
-    return GAMMA_MINUS, GAMMA_INVERSE, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL, HETA_RF, HETA_R
+    return COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL, HETA_RF, HETA_R
 
 
 def add_handler_logger(logger: logging.Logger, handler: Union[logging.FileHandler, logging.StreamHandler]) -> None:
