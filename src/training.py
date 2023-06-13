@@ -43,10 +43,10 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     data = np.zeros((NUM_SAMPLES, num_states+1))
 
     start_time = time()
-    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha)
+    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha, alpha_JV)
 
-    alpha_neuralnet = clip_alpha(alpha_neuralnet, alpha_model.alpha_bounds)
-    alpha_JV = clip_alpha(alpha_JV, alpha_model.alpha_bounds)
+    # alpha_neuralnet = clip_alpha(alpha_neuralnet, alpha_model.alpha_bounds)
+    # alpha_JV = clip_alpha(alpha_JV, alpha_model.alpha_bounds)
 
     log.info(f'Done...took: {(time() - start_time)/60} mins')
 
@@ -126,6 +126,8 @@ def train_model(args: Namespace):
     PRIME_ARRAY_SHAPE = set_var('Prime Array Shape:', tf.constant([NUM_SAMPLES * BATCH_SIZE, NUM_STATES], dtype=tf.int32))
     PRIME_REPEATED_SHAPE = set_var('Prime Repeated Shape:', tf.constant([NUM_SAMPLES, BATCH_SIZE, 1], dtype=tf.int32))
 
+    ALPHA_CONSTRAINT = set_var('Alpha bounds:', args.alpha_constraint)
+
     # --- End Settings ---
 
     log.info('Creating training initializer')
@@ -139,12 +141,14 @@ def train_model(args: Namespace):
     log.info('Initializing alpha')
 
     SIMULATED_STATES, SIMULATED_STATES_MATRIX = init.get_states_simulation()
-    alpha = tf.Variable(1/(1+NUM_ASSETS)*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
+    alpha = tf.Variable(1*tf.random.uniform((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
+    # alpha = tf.Variable(tf.constant([2.0,2.0,2.0,2.0])*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
     alpha_JV_unc = init.jv_allocation_period(0, SIMULATED_STATES)
 
-    alpha_optm = AlphaModel(alpha, ALPHA_BOUNDS, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
+    alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
-    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
+    # model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
+    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
     prime_functions.append(model)
 
     for period in range(1, NUM_PERIODS):
@@ -153,7 +157,7 @@ def train_model(args: Namespace):
         start_time = time()
         # FIX: This is a hack to get the alpha from the previous period
         # I know where the error is, but this is the fastest way to fix it
-        alpha_optm = AlphaModel(alpha, ALPHA_BOUNDS, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
+        alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
         model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
         time_taken = time() - start_time
 
