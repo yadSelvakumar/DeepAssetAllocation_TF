@@ -141,7 +141,7 @@ def train_model(args: Namespace):
     alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
     # model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
-    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
+    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
     prime_functions.append(model)
 
     for period in range(1, NUM_PERIODS):
