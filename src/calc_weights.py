@@ -141,9 +141,9 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
                     "alphas_strategic":alphas_strategic,
                     "alphas_tactical_JV":alphas_tactical_JV,
                     "alphas_strategic_JV":alpha_strategic_JV,
-                    "dates":pandas_dates,
+                    "dates":MARS_FILE["dates"][2606:,:],
                     "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save)
+    sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save,format = '4')
 
     return alphas_tactical,alphas_strategic
 
@@ -189,11 +189,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     investment_end = investment_start + pd.DateOffset(months = invest_horizon)
 
     data = MARS_FILE["states_history2"][2606:,:]
-    alphas_tactical = np.zeros((MARS_FILE["states_history2"].shape[0],NUM_ASSETS))
-    alphas_strategic = np.zeros((MARS_FILE["states_history2"].shape[0],NUM_ASSETS))
+    alphas_tactical = np.zeros((data.shape[0],NUM_ASSETS))
+    alphas_strategic = np.zeros((data.shape[0],NUM_ASSETS))
 
-    alphas_tactical_JV = np.zeros((MARS_FILE["states_history2"].shape[0],NUM_ASSETS))
-    alphas_strategic_JV = np.zeros((MARS_FILE["states_history2"].shape[0],NUM_ASSETS))
+    alphas_tactical_JV = np.zeros((data.shape[0],NUM_ASSETS))
+    alphas_strategic_JV = np.zeros((data.shape[0],NUM_ASSETS))
 
     for t in range(data.shape[0]):
         remaining_horizon = np.int64(((investment_end - pandas_dates[t])/np.timedelta64(1, 'M')))
@@ -234,11 +234,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     plt.figure(figsize=(12, 10))
     for j in range(NUM_ASSETS):
         plt.subplot(2, 2, j+1)
-        plt.plot(pandas_dates[:12],alphas_tactical_JV[:12, j], color='black', label='JV', linewidth=0.8)
-        plt.plot(pandas_dates[:12],alphas_strategic_JV[:12,j], color='black', linestyle = ':', linewidth=1.0)
+        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
+        plt.plot(pandas_dates,alphas_strategic_JV[:,j], color='black', linestyle = ':', linewidth=1.0)
 
-        plt.plot(pandas_dates[:12],alphas_tactical[:12, j], color='tab:red', label='NN', linewidth=1.0)
-        plt.plot(pandas_dates[:12],alphas_strategic[:12,j], color='red',linestyle = ':',linewidth=1.0)
+        plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
+        plt.plot(pandas_dates,alphas_strategic[:,j], color='red',linestyle = ':',linewidth=1.0)
 
 
         plt.title(f'{assets[j]}')
@@ -250,84 +250,9 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
                     "alphas_strategic":alphas_strategic,
                     "alphas_tactical_JV":alphas_tactical_JV,
                     "alphas_strategic_JV":alphas_strategic_JV,
-                    "dates":pandas_dates,
+                    "dates":MARS_FILE["dates"][2606:,:],
                     "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/target_date_investor_allocations.mat',dict_save)
-
-
-
-
-
-
-
-    states,states_matrix,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(MARS_FILE["states_history2"],NUM_VARS,NUM_STATES,args)
-    init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
-    alpha_tplus1 = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
-    alpha_tplus1_JV_unc = init.jv_allocation_period(invest_horizon, states)
-
-    alpha_tplus1_optm = AlphaModel(alpha_tplus1, ALPHA_CONSTRAINT, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, BATCH_SIZE, states_matrix, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
-    alphas_tactical_tplus1 = train_alpha(invest_horizon, log, args, v_prime_fn, alpha_tplus1_JV_unc, alpha_tplus1_JV_unc, alpha_tplus1_optm, states_matrix, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
-
-    import pandas as pd
-    from pandas.tseries.offsets import MonthEnd
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][:,0]-719529,unit = 'd')
-    days = np.array(pandas_dates.day)
-    eomonth_day = np.array((pandas_dates + MonthEnd(0)).day)
-    weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
-
-    alphas_tactical = alphas_tactical_tplus1#(1-weight)*alphas_tactical_t + weight*alphas_tactical_tplus1
-    alphas_tactical_JV = alpha_tplus1_JV_unc#(1-weight)*alpha_t_JV_unc + weight*alpha_tplus1_JV_unc
-
-    # return_portfolio = np.zeros((num_samples))
-    # return_portfolio[0] = 1
-
-    # return_portfolio_JV = np.zeros((num_samples))
-    # return_portfolio_JV[0] = 1
-    # for t in range(num_samples-1):
-    #     Rf = tf.expand_dims(tf.exp(states_matrix[t+1,:, 0]), 1)
-    #     R = Rf * tf.exp(states_matrix[t+1,:, 1:NUM_ASSETS])
-    #     return_portfolio[t+1] = tf.matmul(tf.concat((Rf, R), 1), tf.expand_dims(alphas_tactical[t,:], -1))
-    #     return_portfolio_JV[t+1] = tf.matmul(tf.concat((Rf, R), 1), tf.expand_dims(alphas_tactical_JV[t,:], -1))
-
-    # --------------------------- Strategic allocations -------------------------- #
-    
-    log.info('Creating training initializer')
-    states,states_matrix,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(tf.expand_dims(UNCONDITIONAL_MEAN,axis = 0),NUM_VARS,NUM_STATES,args)
-    init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
-    log.info('Initializing alpha t')
-    
-    alpha = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
-    alpha_strategic_JV = init.jv_allocation_period(invest_horizon, states)
-
-    alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, BATCH_SIZE, states_matrix, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
-    alphas_strategic = train_alpha(invest_horizon, log, args, v_prime_fn, alpha_strategic_JV, alpha_strategic_JV, alpha_optm, states_matrix, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
-
-    assets = ["Cash", "Equity", "Bond", "Commodity"]
-    plt.figure(figsize=(12, 10))
-    for j in range(NUM_ASSETS):
-        plt.subplot(2, 2, j+1)
-        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
-        plt.hlines(alpha_strategic_JV[0,j],pandas_dates[0],pandas_dates[-1], color='black', linestyle = ':', linewidth=1.0)
-
-        plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
-        plt.hlines(alphas_strategic[0,j],pandas_dates[0],pandas_dates[-1], color='red',linestyle = ':',linewidth=1.0)
-
-
-        plt.title(f'{assets[j]}')
-        if j == 0:
-            plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_horizon_{invest_horizon}.png')
-
-    # ------------------------------- Save matfile ------------------------------- #
-    dict_save = {"alphas_tactical":alphas_tactical,
-                    "alphas_strategic":alphas_strategic,
-                    "alphas_tactical_JV":alphas_tactical_JV,
-                    "alphas_strategic_JV":alpha_strategic_JV,
-                    "dates":MARS_FILE["dates"],
-                    "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save)
-
-    return alphas_tactical,alphas_strategic    
+    sp.io.savemat(f'{args.results_dir}/target_date_investor_allocations.mat',dict_save,format = '4')
 
 
 
