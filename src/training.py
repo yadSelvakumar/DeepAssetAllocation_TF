@@ -13,10 +13,6 @@ import tensorflow as tf
 import numpy as np
 import utils
 
-@tf.function
-def clip_alpha(alpha, bounds):
-    return tf.clip_by_value(alpha, *bounds)
-
 def plot_loss(losses, title, filepath):
     plt.figure()
     plt.plot(losses)
@@ -44,9 +40,6 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
 
     start_time = time()
     alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha, alpha_JV)
-
-    # alpha_neuralnet = clip_alpha(alpha_neuralnet, alpha_model.alpha_bounds)
-    # alpha_JV = clip_alpha(alpha_JV, alpha_model.alpha_bounds)
 
     log.info(f'Done...took: {(time() - start_time)/60} mins')
 
