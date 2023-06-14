@@ -23,9 +23,9 @@ def plot_loss(losses, title, filepath):
 # TODO: also reduce parameters with passing settings
 # Notice that alpha_JV is only for logging purposes
 
-def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, weights: list[tf.Tensor]):
+def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info('Initializing alpha optimizer')
-    log.info(f'PERIOD:{period}/50')
+    log.info(f'PERIOD:{period}')
 
     NUM_SAMPLES = args.num_samples
 
@@ -140,8 +140,7 @@ def train_model(args: Namespace):
 
     alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
-    # model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
-    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, [])
+    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
     prime_functions.append(model)
 
     for period in range(1, NUM_PERIODS):
@@ -151,7 +150,7 @@ def train_model(args: Namespace):
         # FIX: This is a hack to get the alpha from the previous period
         # I know where the error is, but this is the fastest way to fix it
         alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
-        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, weights)
+        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, weights)
         time_taken = time() - start_time
 
         expected_time = time_taken * (NUM_PERIODS - period) / 60

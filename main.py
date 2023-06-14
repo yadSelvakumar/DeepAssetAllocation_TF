@@ -30,7 +30,7 @@ parser.add_argument('--results_dir', type=str, default='results', help='director
 parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
 parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
 
-parser.add_argument('--settings_file', type=str, default='settings/ResultsForYad.mat', help='matlab settings file')
+parser.add_argument('--settings_file', type=str, default='settings/model_settings_la_caixa.mat', help='matlab settings file')
 
 args: Namespace  = parser.parse_args()
 

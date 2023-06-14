@@ -20,7 +20,7 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
     SIGMA_VARS: tf.Tensor = tf.convert_to_tensor(parameters["Sigma"][0][0], dtype)
 
     P: int = settings["p"][0][0][0][0]
-    NUM_PERIODS = 50  # settings["allocationSettings"][0][0][0][0][1][0][0]
+    NUM_PERIODS = 120 # settings["allocationSettings"][0][0][0][0][1][0][0]
 
     A0: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A0"], tf.float32))
     A1: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A1"], tf.float32))
