@@ -25,7 +25,7 @@ def plot_loss(losses, title, filepath):
 
 def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info('Initializing alpha optimizer')
-    log.info(f'PERIOD:{period}')
+    log.info(f'PERIOD:{period}/{num_periods}')
 
     NUM_SAMPLES = args.num_samples
 
