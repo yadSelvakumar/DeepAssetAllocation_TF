@@ -38,5 +38,5 @@ if __name__ == '__main__':
     from src.training import train_model
     from src.calc_weights import calc_fixed_horizon_allocations,calc_term_fund_allocations
     # train_model(args)
-    # alphas_fixed_horizon = calc_fixed_horizon_allocations(args,invest_horizon = 47)
+    alphas_fixed_horizon = calc_fixed_horizon_allocations(args,invest_horizon = 47)
     calc_term_fund_allocations(args,invest_horizon = 119)
