@@ -47,6 +47,10 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
+    MARS_FILE = loadmat(args.settings_file)
+    SETTINGS = utils.unpack_mars_settings(MARS_FILE)
+
+
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
 
     log = utils.create_logger(args.logs_dir, 'training')
@@ -123,13 +127,13 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     plt.figure(figsize=(12, 10))
     for j in range(NUM_ASSETS):
         plt.subplot(2, 2, j+1)
-        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
+        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV tplus1', linewidth=0.8)
         plt.hlines(alpha_strategic_JV[0,j],pandas_dates[0],pandas_dates[-1], color='black', linestyle = ':', linewidth=1.0)
 
         plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
         plt.hlines(alphas_strategic[0,j],pandas_dates[0],pandas_dates[-1], color='red',linestyle = ':',linewidth=1.0)
 
-
+        # plt.ylim(-0.1,1)
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
@@ -144,7 +148,6 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
                     "investment_horizon":invest_horizon}
     sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save,format = '4')
 
-    return alphas_tactical,alphas_strategic
 
 
 def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
