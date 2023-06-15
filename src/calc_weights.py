@@ -197,7 +197,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
 
     for t in range(data.shape[0]):
         remaining_horizon = np.int64(((investment_end - pandas_dates[t])/np.timedelta64(1, 'M')))
-        print(f"Calculating horizon: {remaining_horizon}")
+        print(f"Calculating: date: {pandas_dates[t]}, inv horizon: {remaining_horizon}")
         # --------------------------------- Tactical --------------------------------- #
         data_t = tf.expand_dims(tf.constant(data[t,:],tf.float32),axis = 0)
         states,states_matrix,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data_t,NUM_VARS,NUM_STATES,args)
