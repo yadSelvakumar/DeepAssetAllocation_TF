@@ -144,6 +144,8 @@ def train_model(args: Namespace):
     prime_functions.append(model)
 
     for period in range(1, NUM_PERIODS):
+        alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)
+        
         weights = model.trainable_variables
 
         start_time = time()
