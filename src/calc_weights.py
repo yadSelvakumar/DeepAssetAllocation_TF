@@ -174,11 +174,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     # --------------------------- Tactical allocations --------------------------- #        
     import pandas as pd
     from pandas.tseries.offsets import MonthEnd
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][-10:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
     investment_start = pandas_dates[0]
     investment_end = investment_start + pd.DateOffset(months = invest_horizon)
 
-    data = MARS_FILE["states_history"][-10:,:]
+    data = MARS_FILE["states_history"][2606:,:]
     alphas_tactical_t = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_strategic = np.zeros((data.shape[0],NUM_ASSETS))
 
@@ -216,7 +216,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         alphas_tactical_t_JV[t,:] = alpha_tactical_t_JV
 
 
-    data = MARS_FILE["states_history2"][-10:,:]
+    data = MARS_FILE["states_history2"][2606:,:]
     alphas_tactical_tplus1 = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_tactical_tplus1_JV = np.zeros((data.shape[0],NUM_ASSETS))
 
@@ -242,7 +242,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         alphas_tactical_tplus1_JV[t,:] = alpha_tactical_tplus1_JV
 
 
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][-10:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
     days = np.array(pandas_dates.day)
     eomonth_day = np.array((pandas_dates + MonthEnd(0)).day)
     weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
