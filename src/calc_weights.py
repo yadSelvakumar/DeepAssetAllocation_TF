@@ -250,7 +250,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
 
     alphas_tactical = (1-weight)*alphas_tactical_t + weight*alphas_tactical_tplus1
-    alphas_tactical_JV = (1-weight)*alphas_tactical_t_JV + weight*alpha_tactical_tplus1_JV
+    alphas_tactical_JV = (1-weight)*alphas_tactical_t_JV + weight*alphas_tactical_tplus1_JV
 
 
     log.info('Initializing alpha t plus1')
@@ -262,17 +262,18 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
         plt.plot(pandas_dates,alphas_strategic_JV[:,j], color='black', linestyle = ':', linewidth=1.0)
 
-        plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
-        plt.plot(pandas_dates,alphas_strategic[:,j], color='red',linestyle = ':',linewidth=1.0)
+        # plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
+        # plt.plot(pandas_dates,alphas_strategic[:,j], color='red',linestyle = ':',linewidth=1.0)
 
 
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor_new.png')
+    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor_new_strategic.png')
 
-    dict_save = {"alphas_tactical":alphas_tactical,
-                    "alphas_strategic":alphas_strategic,
+    dict_save = {
+                    # "alphas_tactical":alphas_tactical,
+                    # "alphas_strategic":alphas_strategic,
                     "alphas_tactical_JV":alphas_tactical_JV,
                     "alphas_strategic_JV":alphas_strategic_JV,
                     "dates":MARS_FILE["dates"][2606:,:],
