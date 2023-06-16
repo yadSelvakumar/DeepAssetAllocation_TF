@@ -144,7 +144,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
                     "alphas_strategic":alphas_strategic,
                     "alphas_tactical_JV":alphas_tactical_JV,
                     "alphas_strategic_JV":alpha_strategic_JV,
-                    "dates":MARS_FILE["dates"][2606:,:],
+                    "dates":MARS_FILE["dates"],#[2606:,:],
                     "investment_horizon":invest_horizon}
     sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save,format = '4')
 
@@ -191,18 +191,20 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         # --------------------------------- Tactical --------------------------------- #
         data_t = tf.expand_dims(tf.constant(data[t,:],tf.float32),axis = 0)
         states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data_t,NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
-
-        init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
+        if t==0:
+            init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
         alpha_tactical_t = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
         alpha_tactical_t_JV = init.jv_allocation_period(remaining_horizon, states)
         
         alpha_tactical_t_optm = AlphaModel(alpha_tactical_t, ALPHA_CONSTRAINT, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, BATCH_SIZE, states_prime_expected, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
-        alpha_tactical_t = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_t_JV, alpha_tactical_t_JV, alpha_tactical_t_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
-
+        if t==0:
+            alpha_tactical_t = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_t_JV, alpha_tactical_t_JV, alpha_tactical_t_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
+        else:
+            alpha_tactical_t = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_t_JV, tf.expand_dims(tf.cast(alphas_tactical_t[t-1,:],tf.float32),axis = 0), alpha_tactical_t_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
         # --------------------------------- Strategic -------------------------------- #
         states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(tf.expand_dims(UNCONDITIONAL_MEAN,axis = 0),NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
 
-        init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
+        # init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
         alpha_strategic_t = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
         alpha_strategic_t_JV = init.jv_allocation_period(remaining_horizon, states)
         
@@ -225,17 +227,19 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         data_t = tf.expand_dims(tf.constant(data[t,:],tf.float32),axis = 0)
         states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data_t,NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
 
-        init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
+        # init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
         alpha_tactical_tplus1 = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
         alpha_tactical_tplus1_JV = init.jv_allocation_period(remaining_horizon, states)
         
         alpha_tactical_tplus1_optm = AlphaModel(alpha_tactical_tplus1, ALPHA_CONSTRAINT, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, BATCH_SIZE, states_prime_expected, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
-        alpha_tactical_tplus1 = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_tplus1_JV, alpha_tactical_tplus1_JV, alpha_tactical_tplus1_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
+        if t==0:
+            alpha_tactical_tplus1 = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_tplus1_JV, alpha_tactical_tplus1_JV, alpha_tactical_tplus1_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
+        else:
+            alpha_tactical_tplus1 = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_tplus1_JV, tf.expand_dims(tf.cast(alphas_tactical_tplus1[t-1,:],tf.float32),axis = 0), alpha_tactical_tplus1_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
 
         # Save
         alphas_tactical_tplus1[t,:] = alpha_tactical_tplus1
         alphas_tactical_tplus1_JV[t,:] = alpha_tactical_tplus1_JV
-
 
 
     pandas_dates = pd.to_datetime(MARS_FILE["dates"][-10:,0]-719529,unit = 'd')
