@@ -54,7 +54,7 @@ class AlphaModel(K.Model):
             alphas = alphas.write(iter_alpha, alpha_epoch * self.inverse_iter_per_epoch)
 
             # if iter_alpha % 4 == 0:
-            #     tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
+                # tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
 
         return alphas.stack()[-1], EUs.stack()[-1], losses.stack()
 
