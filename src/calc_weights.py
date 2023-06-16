@@ -74,7 +74,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     # --------------------------- Tactical allocations --------------------------- #    
     log.info('Creating training initializer')
     log.info('Initializing alpha t')
-    data = MARS_FILE["states_history"][2606:,:]
+    data = MARS_FILE["states_history"]#[2606:,:]
     states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data,NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
 
     init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
@@ -87,7 +87,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     alphas_tactical_t = train_alpha(invest_horizon, log, args, v_prime_fn, alpha_t_JV_unc, alpha_t_JV_unc, alpha_t_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
 
     log.info('Initializing alpha t+1')
-    data = MARS_FILE["states_history2"][2606:,:]
+    data = MARS_FILE["states_history2"]#[2606:,:]
     states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data,NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
 
     init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
@@ -101,7 +101,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     # ------- Calc weight ------ #
     import pandas as pd
     from pandas.tseries.offsets import MonthEnd
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][:,0]-719529,unit = 'd')
     days = np.array(pandas_dates.day)
     eomonth_day = np.array((pandas_dates + MonthEnd(0)).day)
     weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
@@ -128,10 +128,10 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     for j in range(NUM_ASSETS):
         plt.subplot(2, 2, j+1)
         plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
-        plt.hlines(alpha_strategic_JV[0,j],pandas_dates[0],pandas_dates[-1], color='black', linestyle = ':', linewidth=1.0)
+        # plt.hlines(alpha_strategic_JV[0,j],pandas_dates[0],pandas_dates[-1], color='black', linestyle = ':', linewidth=1.0)
 
-        plt.plot(pandas_dates,alphas_tactical_t[:, j], color='tab:red', label='NN', linewidth=1.0)
-        plt.hlines(alphas_strategic[0,j],pandas_dates[0],pandas_dates[-1], color='red',linestyle = ':',linewidth=1.0)
+        plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
+        # plt.hlines(alphas_strategic[0,j],pandas_dates[0],pandas_dates[-1], color='red',linestyle = ':',linewidth=1.0)
 
         # plt.ylim(-0.1,1)
         plt.title(f'{assets[j]}')
@@ -174,15 +174,15 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     # --------------------------- Tactical allocations --------------------------- #        
     import pandas as pd
     from pandas.tseries.offsets import MonthEnd
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][-10:,0]-719529,unit = 'd')
     investment_start = pandas_dates[0]
     investment_end = investment_start + pd.DateOffset(months = invest_horizon)
 
-    data = MARS_FILE["states_history2"][2606:,:]
-    alphas_tactical = np.zeros((data.shape[0],NUM_ASSETS))
+    data = MARS_FILE["states_history"][-10:,:]
+    alphas_tactical_t = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_strategic = np.zeros((data.shape[0],NUM_ASSETS))
 
-    alphas_tactical_JV = np.zeros((data.shape[0],NUM_ASSETS))
+    alphas_tactical_t_JV = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_strategic_JV = np.zeros((data.shape[0],NUM_ASSETS))
 
     for t in range(data.shape[0]):
@@ -210,12 +210,41 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         alpha_strategic_t = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_strategic_t_JV, alpha_strategic_t_JV, alpha_strategic_t_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
 
         # Save
-        alphas_tactical[t,:] = alpha_tactical_t
-        alphas_strategic[t,:] = alpha_strategic_t
+        alphas_tactical_t[t,:] = alpha_tactical_t
+        alphas_tactical_t_JV[t,:] = alpha_tactical_t_JV
 
-        alphas_tactical_JV[t,:] = alpha_tactical_t_JV
-        alphas_strategic_JV[t,:] = alpha_strategic_t_JV
 
+    data = MARS_FILE["states_history2"][-10:,:]
+    alphas_tactical_tplus1 = np.zeros((data.shape[0],NUM_ASSETS))
+    alphas_tactical_tplus1_JV = np.zeros((data.shape[0],NUM_ASSETS))
+
+    for t in range(data.shape[0]):
+        remaining_horizon = np.int64(((investment_end - pandas_dates[t])/np.timedelta64(1, 'M')))
+        print(f"Calculating: date: {pandas_dates[t]}, inv horizon: {remaining_horizon}")
+        # --------------------------------- Tactical --------------------------------- #
+        data_t = tf.expand_dims(tf.constant(data[t,:],tf.float32),axis = 0)
+        states,states_prime_expected,num_samples,epsilon_shape,prime_array_shape,prime_repeated_shape = init_shapes(data_t,NUM_VARS,NUM_STATES,PHI_0, PHI_1,args)
+
+        init = TrainingInitializer(num_samples, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
+        alpha_tactical_tplus1 = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
+        alpha_tactical_tplus1_JV = init.jv_allocation_period(remaining_horizon, states)
+        
+        alpha_tactical_tplus1_optm = AlphaModel(alpha_tactical_tplus1, ALPHA_CONSTRAINT, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, BATCH_SIZE, states_prime_expected, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
+        alpha_tactical_tplus1 = train_alpha(remaining_horizon, log, args, v_prime_fns[remaining_horizon], alpha_tactical_tplus1_JV, alpha_tactical_tplus1_JV, alpha_tactical_tplus1_optm, states_prime_expected, NUM_STATES, args.first_decay_steps_alpha, args.first_decay_steps, NUM_PERIODS, [])
+
+        # Save
+        alphas_tactical_tplus1[t,:] = alpha_tactical_tplus1
+        alphas_tactical_tplus1_JV[t,:] = alpha_tactical_tplus1_JV
+
+
+
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][-10:,0]-719529,unit = 'd')
+    days = np.array(pandas_dates.day)
+    eomonth_day = np.array((pandas_dates + MonthEnd(0)).day)
+    weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
+
+    alphas_tactical = (1-weight)*alphas_tactical_t + weight*alphas_tactical_tplus1
+    alphas_tactical_JV = (1-weight)*alphas_tactical_t_JV + weight*alpha_tactical_tplus1_JV
 
 
     log.info('Initializing alpha t plus1')
@@ -234,7 +263,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor.png')
+    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor_new.png')
 
     dict_save = {"alphas_tactical":alphas_tactical,
                     "alphas_strategic":alphas_strategic,
