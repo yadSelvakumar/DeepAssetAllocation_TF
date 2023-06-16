@@ -174,11 +174,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
     # --------------------------- Tactical allocations --------------------------- #        
     import pandas as pd
     from pandas.tseries.offsets import MonthEnd
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:3500,0]-719529,unit = 'd')
     investment_start = pandas_dates[0]
     investment_end = investment_start + pd.DateOffset(months = invest_horizon)
 
-    data = MARS_FILE["states_history"][2606:,:]
+    data = MARS_FILE["states_history"][2606:3500,:]
     alphas_tactical_t = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_strategic = np.zeros((data.shape[0],NUM_ASSETS))
 
@@ -219,7 +219,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         alphas_strategic[t,:] = alpha_strategic_t
         rem_horizon_last = remaining_horizon
 
-    data = MARS_FILE["states_history2"][2606:,:]
+    data = MARS_FILE["states_history2"][2606:3500,:]
     alphas_tactical_tplus1 = np.zeros((data.shape[0],NUM_ASSETS))
     alphas_tactical_tplus1_JV = np.zeros((data.shape[0],NUM_ASSETS))
 
@@ -248,7 +248,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         
 
 
-    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:,0]-719529,unit = 'd')
+    pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:3500,0]-719529,unit = 'd')
     days = np.array(pandas_dates.day)
     eomonth_day = np.array((pandas_dates + MonthEnd(0)).day)
     weight = tf.expand_dims(tf.constant(days/eomonth_day,tf.float32),axis = 1)
@@ -273,16 +273,16 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor_check.png')
+    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor_check_50_iter_short.png')
 
-    dict_save = {
-                    "alphas_tactical":alphas_tactical,
-                    "alphas_strategic":alphas_strategic,
-                    "alphas_tactical_JV":alphas_tactical_JV,
-                    "alphas_strategic_JV":alphas_strategic_JV,
-                    "dates":MARS_FILE["dates"][2606:,:],
-                    "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/target_date_investor_allocations_newest.mat',dict_save,format = '4')
+    # dict_save = {
+    #                 "alphas_tactical":alphas_tactical,
+    #                 "alphas_strategic":alphas_strategic,
+    #                 "alphas_tactical_JV":alphas_tactical_JV,
+    #                 "alphas_strategic_JV":alphas_strategic_JV,
+    #                 "dates":MARS_FILE["dates"][2606:,:],
+    #                 "investment_horizon":invest_horizon}
+    # sp.io.savemat(f'{args.results_dir}/target_date_investor_allocations_newest_50_iter.mat',dict_save,format = '4')
 
 def train_alpha(horizon, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info('Initializing alpha optimizer')
