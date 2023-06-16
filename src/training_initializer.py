@@ -21,7 +21,7 @@ class TrainingInitializer:
 
     # TODO: Use tensorflow for optimization
     def get_states_simulation(self) -> tuple[tf.Tensor, tf.Tensor]:
-        tf.keras.utils.set_random_seed(123)
+        # tf.keras.utils.set_random_seed(123)
         state_simulations = np.zeros((self.num_samples, self.num_states))
         state_simulations[0] = self.initial_state
         error_epsilon = np.random.multivariate_normal(np.zeros(self.num_vars), np.eye(self.num_vars), size=self.num_samples)

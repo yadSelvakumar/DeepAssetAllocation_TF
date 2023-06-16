@@ -65,11 +65,11 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
 
     # --- End Settings ---
 
-    # load_options = tf.saved_model.LoadOptions(allow_partial_checkpoint = False,experimental_io_device = "/job:localhost",experimental_skip_checkpoint = False)
-    # v_prime_fn = tf.keras.models.load_model(f"./{args.results_dir}/value_{invest_horizon}",options = load_options,compile = False)
-    @tf.function
-    def initial_prime_function(z): return tf.ones((z.shape[0], 1))
-    v_prime_fn = initial_prime_function
+    load_options = tf.saved_model.LoadOptions(allow_partial_checkpoint = False,experimental_io_device = "/job:localhost",experimental_skip_checkpoint = False)
+    v_prime_fn = tf.keras.models.load_model(f"./{args.results_dir}/value_{invest_horizon}",options = load_options,compile = False)
+    # @tf.function
+    # def initial_prime_function(z): return tf.ones((z.shape[0], 1))
+    # v_prime_fn = initial_prime_function
 
     # --------------------------- Tactical allocations --------------------------- #    
     log.info('Creating training initializer')
@@ -127,17 +127,17 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
     plt.figure(figsize=(12, 10))
     for j in range(NUM_ASSETS):
         plt.subplot(2, 2, j+1)
-        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV tplus1', linewidth=0.8)
+        plt.plot(pandas_dates,alphas_tactical_JV[:, j], color='black', label='JV', linewidth=0.8)
         plt.hlines(alpha_strategic_JV[0,j],pandas_dates[0],pandas_dates[-1], color='black', linestyle = ':', linewidth=1.0)
 
-        plt.plot(pandas_dates,alphas_tactical[:, j], color='tab:red', label='NN', linewidth=1.0)
+        plt.plot(pandas_dates,alphas_tactical_t[:, j], color='tab:red', label='NN', linewidth=1.0)
         plt.hlines(alphas_strategic[0,j],pandas_dates[0],pandas_dates[-1], color='red',linestyle = ':',linewidth=1.0)
 
         # plt.ylim(-0.1,1)
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_horizon_{invest_horizon}.png')
+    plt.savefig(f'{args.figures_dir}/realized_allocations_horizon_{invest_horizon}_new.png')
 
     # ------------------------------- Save matfile ------------------------------- #
     dict_save = {"alphas_tactical":alphas_tactical,
