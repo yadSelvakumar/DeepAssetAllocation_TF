@@ -26,8 +26,10 @@ parser.add_argument('--activation_function', type=str, choices=['tanh', 'relu','
 parser.add_argument('--activation_function_output', type=str, choices=['tanh', 'relu', 'linear'], default='linear', help='activation function for output layer')
 parser.add_argument('--initial_guess', type=float, default=1, help='initial guess for model')
 
-parser.add_argument('--results_dir', type=str, default='results_alt', help='directory for results')
-parser.add_argument('--figures_dir', type=str, default='figures_alt', help='directory for figures')
+parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
+parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
+parser.add_argument('--results_dir_save', type=str, default='results_save', help='directory for results to save')
+parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
 parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
 
 parser.add_argument('--settings_file', type=str, default='settings/model_settings_la_caixa_new.mat', help='matlab settings file')
@@ -39,5 +41,5 @@ if __name__ == '__main__':
     from src.training import train_model
     from src.calc_weights import calc_fixed_horizon_allocations,calc_term_fund_allocations
     # train_model(args)
-    # calc_fixed_horizon_allocations(args,invest_horizon = 47)
+    calc_fixed_horizon_allocations(args,invest_horizon = 47)
     calc_term_fund_allocations(args,invest_horizon = 119)
