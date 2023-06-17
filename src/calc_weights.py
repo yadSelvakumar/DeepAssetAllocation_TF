@@ -137,7 +137,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_horizon_{invest_horizon}_new.png')
+    plt.savefig(f'{args.figures_dir_save}/realized_allocations_horizon_{invest_horizon}_new.png')
 
     # ------------------------------- Save matfile ------------------------------- #
     dict_save = {"alphas_tactical":alphas_tactical,
@@ -146,7 +146,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
                     "alphas_strategic_JV":alpha_strategic_JV,
                     "dates":MARS_FILE["dates"],#[2606:,:],
                     "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/fixed_horizon_allocations.mat',dict_save,format = '4')
+    sp.io.savemat(f'{args.results_dir_save}/fixed_horizon_allocations.mat',dict_save,format = '4')
 
 
 
@@ -287,7 +287,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir}/realized_allocations_target_date_investor.png')
+    plt.savefig(f'{args.figures_dir_save}/realized_allocations_target_date_investor.png')
 
     dict_save = {
                     "alphas_tactical":alphas_tactical,
@@ -296,7 +296,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon:int):
                     "alphas_strategic_JV":alphas_strategic_JV,
                     "dates":MARS_FILE["dates"][2606:,:],
                     "investment_horizon":invest_horizon}
-    sp.io.savemat(f'{args.results_dir}/target_date_investor_allocations.mat',dict_save,format = '4')
+    sp.io.savemat(f'{args.results_dir_save}/target_date_investor_allocations.mat',dict_save,format = '4')
 
 def train_alpha(horizon, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info('Initializing alpha optimizer')
