@@ -137,7 +137,7 @@ def calc_fixed_horizon_allocations(args: Namespace,invest_horizon:int):
         plt.title(f'{assets[j]}')
         if j == 0:
             plt.legend()
-    plt.savefig(f'{args.figures_dir_save}/realized_allocations_horizon_{invest_horizon}_new.png')
+    plt.savefig(f'{args.figures_dir_save}/realized_allocations_horizon_{invest_horizon}.png')
 
     # ------------------------------- Save matfile ------------------------------- #
     dict_save = {"alphas_tactical":alphas_tactical,
