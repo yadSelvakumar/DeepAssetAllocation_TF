@@ -76,14 +76,23 @@ def run_allocation(log: Logger, allocation_name: str, invest_horizon: int, data:
     alpha_t = tf.Variable(0.25*tf.ones((num_samples, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
     alpha_t_JV_unc = init.jv_allocation_period(invest_horizon, states)
 
+    log.info('Initializing alpha optimizer')
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
+
+    lr_optim_alpha = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, args.first_decay_steps_alpha, args.decay_rate_alpha, staircase=True)
     alpha_t_optm = AlphaModel(alpha_t, args.alpha_constraint, args.iter_per_epoch, num_samples, NUM_ASSETS, GAMMA, args.batch_size, states_prime_expected, COVARIANCE_MATRIX, epsilon_shape, prime_array_shape, prime_repeated_shape)
-    alphas_tactical_t = train_alpha(log, args, v_prime_fn, alpha_t_JV_unc, alpha_t_JV_unc, alpha_t_optm,  args.first_decay_steps_alpha)
+    alpha_t_optm.initialize(v_prime_fn, alpha_t_JV_unc, lr_optim_alpha)
+
+    log.info('Training alpha')
+    start_time = time()
+    alphas_tactical_t, *_ = alpha_t_optm(v_prime_fn, args.num_epochs_alpha)
+    log.info(f'Done...took: {(time() - start_time)/60} mins')
+
+    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
 
     return alphas_tactical_t, alpha_t_JV_unc
 
 # TODO: tf.function this for performance
-
-
 def init_shapes(data, num_vars, num_states, PHI_0, PHI_1, args):
     states = tf.constant(data, tf.float32)
     phi0_t = tf.cast(tf.transpose(PHI_0), tf.float32)
@@ -224,21 +233,3 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
 
     save_results(args.results_dir_save, 'target_date_investor_allocations', 
                  alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:], invest_horizon)
-
-
-def train_alpha(log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, alpha_decay_steps: int):
-    log.info('Initializing alpha optimizer')
-
-    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
-
-    lr_optim_alpha = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, alpha_decay_steps, args.decay_rate_alpha, staircase=True)
-    alpha_model.initialize(prime_function, initial_alpha, lr_optim_alpha)
-
-    log.info('Training alpha')
-    start_time = time()
-    alpha_neuralnet, *_ = alpha_model(prime_function, args.num_epochs_alpha)
-
-    log.info(f'Done...took: {(time() - start_time)/60} mins')
-    tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
-
-    return alpha_neuralnet

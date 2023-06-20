@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras as K
 
-# TODO: Change parameters to get settings
+# TODO: Change parameters to const settings for simplification
 
 class AlphaModel(K.Model):
     def __init__(self, alpha, alpha_constraint, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
