@@ -13,6 +13,7 @@ import tensorflow as tf
 import numpy as np
 import utils
 
+
 def plot_loss(losses, title, filepath):
     plt.figure()
     plt.plot(losses)
@@ -22,6 +23,7 @@ def plot_loss(losses, title, filepath):
 
 # TODO: also reduce parameters with passing settings
 # Notice that alpha_JV is only for logging purposes
+
 
 def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info(f'Initializing alpha optimizer\nPERIOD:{period}/{num_periods}')
@@ -160,4 +162,3 @@ def train_model(args: Namespace):
         K.backend.clear_session()
 
     log.info('Training complete')
-

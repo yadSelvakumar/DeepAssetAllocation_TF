@@ -3,6 +3,7 @@ from tensorflow import keras as K
 
 # TODO: Change parameters to const settings for simplification
 
+
 class AlphaModel(K.Model):
     def __init__(self, alpha, alpha_constraint, iter_per_epoch, num_samples, num_assets, gamma, batch_size, sim_states_matrix, cov_matrix, epsilon_shape, prime_shape, prime_rep_shape):
         super().__init__()
@@ -49,7 +50,7 @@ class AlphaModel(K.Model):
             alphas = alphas.write(iter_alpha, alpha_epoch * self.inverse_iter_per_epoch)
 
             # if iter_alpha % 4 == 0:
-                # tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
+            # tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
 
         return alphas.stack()[-1], EUs.stack()[-1], losses.stack()
 
@@ -59,7 +60,7 @@ class AlphaModel(K.Model):
 
     # TODO: This should be the call
     @tf.function
-    def optimal_alpha_step(self, states_prime, value_prime):        
+    def optimal_alpha_step(self, states_prime, value_prime):
         with tf.GradientTape() as tape:
             alpha_normalized = self.normalize_alpha()
             loss = self.get_loss(states_prime, value_prime, alpha_normalized)
@@ -69,7 +70,7 @@ class AlphaModel(K.Model):
         self.optimizer.apply_gradients(zip([alpha_grad], [self.alpha]))
         alpha_normalized = self.normalize_alpha()
 
-        return loss,alpha_normalized
+        return loss, alpha_normalized
 
     @tf.function
     def find_optimal_alpha(self, value_prime_func):
@@ -80,7 +81,7 @@ class AlphaModel(K.Model):
             epsilon = tf.random.normal(self.epsilon_shape)
             states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
 
-            loss,alpha_normalized = self.optimal_alpha_step(states_prime, value_prime)
+            loss, alpha_normalized = self.optimal_alpha_step(states_prime, value_prime)
             # alpha_clipped = tf.clip_by_value(alpha_normalized, *self.alpha_bounds)
 
             loss_epoch += loss
@@ -94,7 +95,7 @@ class AlphaModel(K.Model):
             num_assets = self.alpha.shape[1]
             alpha_normalized = self.alpha - (tf.reduce_sum(self.alpha, axis=1, keepdims=True) - 1) / num_assets
         elif self.alpha_constraint == 'retail-relu':
-            alpha_normalized = tf.nn.relu(self.alpha)/tf.reduce_sum(tf.nn.relu(self.alpha),axis = 1,keepdims=True)        
+            alpha_normalized = tf.nn.relu(self.alpha)/tf.reduce_sum(tf.nn.relu(self.alpha), axis=1, keepdims=True)
         return alpha_normalized
 
     @tf.function
@@ -119,10 +120,10 @@ class AlphaModel(K.Model):
         return -tf.reduce_sum(self.value_function_MC_V(states_prime, value_prime, alpha))*self.inverse_batch_size
 
     @tf.function
-    def initialize_optimal_alpha(self, states_prime, value_prime):        
+    def initialize_optimal_alpha(self, states_prime, value_prime):
         with tf.GradientTape() as tape:
             alpha_normalized = self.normalize_alpha()
-            loss = self.get_loss(states_prime, value_prime,alpha_normalized)
+            loss = self.get_loss(states_prime, value_prime, alpha_normalized)
 
         grads_eu = tape.gradient(loss, self.alpha)
         alpha_grad = self.gradient_projection(grads_eu)

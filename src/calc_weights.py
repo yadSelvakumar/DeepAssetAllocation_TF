@@ -93,6 +93,8 @@ def run_allocation(log: Logger, allocation_name: str, invest_horizon: int, data:
     return alphas_tactical_t, alpha_t_JV_unc
 
 # TODO: tf.function this for performance
+
+
 def init_shapes(data, num_vars, num_states, PHI_0, PHI_1, args):
     states = tf.constant(data, tf.float32)
     phi0_t = tf.cast(tf.transpose(PHI_0), tf.float32)
@@ -231,5 +233,5 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
 
     plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
 
-    save_results(args.results_dir_save, 'target_date_investor_allocations', 
+    save_results(args.results_dir_save, 'target_date_investor_allocations',
                  alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:], invest_horizon)
