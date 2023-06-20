@@ -209,11 +209,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
         alpha_strategic_t_hminus1, alpha_strategic_t_hminus1_JV = run_allocation(log, 'Strategic (h-1)', horizon-1, tf.expand_dims(UNCONDITIONAL_MEAN, axis=0), v_prime_fns[horizon-1], args, SETTINGS, COMPUTED_SETTINGS)
 
         # ---------------------------------- Saving ---------------------------------- #
-        alphas_strategic_h = repeat_and_assign(alphas_strategic_h, alpha_strategic_t_h, horizon_idx)
-        alphas_strategic_h_JV = repeat_and_assign(alphas_strategic_h_JV, alpha_strategic_t_h_JV,  horizon_idx)
+        alphas_strategic_h[horizon_idx] = tf.repeat(alpha_strategic_t_h, repeats=datat.shape[0], axis=0)
+        alphas_strategic_h_JV[horizon_idx] = tf.repeat(alpha_strategic_t_h_JV, repeats=datat.shape[0], axis=0)
 
-        alphas_strategic_hminus1 = repeat_and_assign(alphas_strategic_hminus1, alpha_strategic_t_hminus1, horizon_idx)
-        alphas_strategic_hminus1_JV = repeat_and_assign(alphas_strategic_hminus1_JV, alpha_strategic_t_hminus1_JV, horizon_idx)
+        alphas_strategic_hminus1[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1, repeats=datat.shape[0], axis=0)
+        alphas_strategic_hminus1_JV[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1_JV, repeats=datat.shape[0], axis=0)
 
         alphas_tactical_t[horizon_idx], alphas_tactical_t_JV[horizon_idx] = alpha_tactical_t, alpha_tactical_t_JV
         alphas_tactical_tplus1[horizon_idx], alphas_tactical_tplus1_JV[horizon_idx] = alpha_tactical_tplus1, alpha_tactical_tplus1_JV
