@@ -38,7 +38,7 @@ parser.add_argument('--settings_file', type=str, default='settings/model_setting
 args: Namespace  = parser.parse_args()
 
 if __name__ == '__main__':
-    from src.training import train_model
+    # from src.training import train_model
     from src.calc_weights import calc_fixed_horizon_allocations,calc_term_fund_allocations
     # train_model(args)
     calc_fixed_horizon_allocations(args,invest_horizon = 47)

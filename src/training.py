@@ -24,11 +24,9 @@ def plot_loss(losses, title, filepath):
 # Notice that alpha_JV is only for logging purposes
 
 def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
-    log.info('Initializing alpha optimizer')
-    log.info(f'PERIOD:{period}/{num_periods}')
+    log.info(f'Initializing alpha optimizer\nPERIOD:{period}/{num_periods}')
 
     NUM_SAMPLES = args.num_samples
-
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
 
     lr_optim_alpha = K.optimizers.schedules.ExponentialDecay(args.learning_rate_alpha, alpha_decay_steps, args.decay_rate_alpha, staircase=True)
@@ -102,18 +100,16 @@ def train_model(args: Namespace):
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
-
     log = utils.create_logger(args.logs_dir, 'training')
 
     def set_var(name, value):
         log.info(f'{name}: {value}')
         return value
 
-    DEVICE = set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
+    set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
 
     NUM_SAMPLES = set_var('Number of Samples', args.num_samples)
     BATCH_SIZE = set_var('Batch Size:', args.batch_size)
-    ALPHA_BOUNDS = set_var('Alpha bounds:', ([-5, -5, -5, -5], [5, 5, 5, 5]))
 
     EPSILON_SHAPE = set_var('Epsilon Shape:', tf.constant((NUM_SAMPLES, BATCH_SIZE, NUM_VARS), dtype=tf.int32))
     PRIME_ARRAY_SHAPE = set_var('Prime Array Shape:', tf.constant([NUM_SAMPLES * BATCH_SIZE, NUM_STATES], dtype=tf.int32))
@@ -145,7 +141,7 @@ def train_model(args: Namespace):
 
     for period in range(1, NUM_PERIODS):
         alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)
-        
+
         weights = model.trainable_variables
 
         start_time = time()

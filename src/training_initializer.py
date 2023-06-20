@@ -1,3 +1,4 @@
+from typing import cast
 import numpy as np
 import tensorflow as tf
 
@@ -37,4 +38,4 @@ class TrainingInitializer:
     def jv_allocation_period(self, period: int, simulated_states: tf.Tensor) -> tf.Tensor:
         JV_original = tf.expand_dims(self.a0[:, period], axis=0) + tf.matmul(simulated_states, self.a1[:, :, period], transpose_b=True)
         cash = 1 - tf.expand_dims(tf.reduce_sum(JV_original, axis=1), axis=1)
-        return tf.concat([cash, JV_original], 1)
+        return cast(tf.Tensor, tf.concat([cash, JV_original], 1))
