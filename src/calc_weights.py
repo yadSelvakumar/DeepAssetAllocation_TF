@@ -191,9 +191,9 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
     alphas_strategic_h, alphas_strategic_h_JV = np.copy(empty_alpha), np.copy(empty_alpha)
     alphas_strategic_hminus1, alphas_strategic_hminus1_JV = np.copy(empty_alpha), np.copy(empty_alpha)
 
-    @tf.function
-    def repeat_and_assign(alphas, update_alpha, idx) -> tf.Tensor:
-        return tf.tensor_scatter_nd_update(alphas, [idx], tf.repeat(update_alpha, repeats=datat.shape[0], axis=0))
+    # @tf.function
+    # def repeat_and_assign(alphas, update_alpha, idx) -> tf.Tensor:
+    #     return tf.tensor_scatter_nd_update(alphas, [idx], tf.repeat(update_alpha, repeats=datat.shape[0], axis=0))
 
     for horizon in unique_remaining_horizons:
         start_time = time()
