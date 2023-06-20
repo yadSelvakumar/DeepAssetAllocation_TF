@@ -235,9 +235,8 @@ def train_alpha(log: Logger, args: Namespace, prime_function: Callable, alpha_JV
     alpha_model.initialize(prime_function, initial_alpha, lr_optim_alpha)
 
     log.info('Training alpha')
-
     start_time = time()
-    alpha_neuralnet, *_ = alpha_model(prime_function, args.num_epochs_alpha, alpha_JV)
+    alpha_neuralnet, *_ = alpha_model(prime_function, args.num_epochs_alpha)
 
     log.info(f'Done...took: {(time() - start_time)/60} mins')
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})

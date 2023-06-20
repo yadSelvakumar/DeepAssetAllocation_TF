@@ -37,7 +37,7 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     data = np.zeros((NUM_SAMPLES, num_states+1))
 
     start_time = time()
-    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha, alpha_JV)
+    alpha_neuralnet, J, loss = alpha_model(prime_function, args.num_epochs_alpha)
 
     log.info(f'Done...took: {(time() - start_time)/60} mins')
 

@@ -37,16 +37,11 @@ class AlphaModel(K.Model):
         self.optimizer.apply_gradients(zip([alpha_grad], [self.alpha]))
 
     @tf.function
-    def call(self, value_prime_func, number_epochs, alpha_JV) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    def call(self, value_prime_func, number_epochs) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         losses = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
         EUs = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
         alphas = tf.TensorArray(tf.float32, size=number_epochs, clear_after_read=False, dynamic_size=False)
-        start_time = tf.timestamp()
         for iter_alpha in tf.range(number_epochs):
-            approx_time = tf.math.ceil((tf.timestamp()-start_time) * tf.cast((number_epochs-iter_alpha), tf.float64))
-            start_time = tf.timestamp()
-
-            # TODO: minimize calculations of printing, by only printing steps
             loss_epoch, EU_epoch, alpha_epoch = self.find_optimal_alpha(value_prime_func)
 
             losses = losses.write(iter_alpha, loss_epoch * self.inverse_iter_per_epoch)
