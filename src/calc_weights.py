@@ -158,7 +158,7 @@ def calc_fixed_horizon_allocations(args: Namespace, invest_horizon: int):
     # --------------------------- Strategic allocations -------------------------- #
     alphas_strategic, alphas_strategic_JV = run_allocation(log, 'Alpha Strategic', invest_horizon, tf.expand_dims(UNCONDITIONAL_MEAN, axis=0), v_prime_fn, args, SETTINGS, COMPUTED_SETTINGS)
 
-    plot_and_save(args.figures_dir_save, 'realized_allocations_horizon_{invest_horizon}_new', pandas_dates, [alphas_tactical_JV], [alphas_tactical])
+    plot_and_save(args.figures_dir_save, f'realized_allocations_horizon_{invest_horizon}_new', pandas_dates, [alphas_tactical], [alphas_tactical_JV])
 
     save_results(args.results_dir_save, 'fixed_horizon_allocations',
                  alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"], invest_horizon)
