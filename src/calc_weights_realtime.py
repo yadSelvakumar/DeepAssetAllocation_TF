@@ -36,7 +36,7 @@ def load_nn_results(args, horizons) -> list[Callable]:
     return v_prime_fn
 
 
-def save_results(filedir: str, filename: str, alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, dates_fixed_horizon, investment_horizon_fixed_horizon,alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, dates_target_date, investment_horizon_target_date):
+def save_results(filedir: str, filename: str, alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, dates_fixed_horizon, investment_horizon_fixed_horizon,alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, dates_target_date, investment_horizon_target_date, data_t, data_tplus1, unconditional_mean):
     dict_save = {
         "alphas_tactical_fixed_horizon": alphas_tactical_fixed_horizon,
         "alphas_strategic_fixed_horizon": alphas_strategic_fixed_horizon,
@@ -49,7 +49,10 @@ def save_results(filedir: str, filename: str, alphas_tactical_fixed_horizon, alp
         "alphas_tactical_JV_target_date": alphas_tactical_JV_target_date,
         "alphas_strategic_JV_target_date": alphas_strategic_JV_target_date,
         "dates_target_date": dates_target_date,
-        "investment_horizon_target_date": investment_horizon_target_date        
+        "investment_horizon_target_date": investment_horizon_target_date,
+        "data_t": data_t, 
+        "data_tplus1": data_tplus1,
+        "unconditional_mean":unconditional_mean        
     }
     sp.io.savemat(f'{filedir}/{filename}.mat', dict_save, format='4')
 
@@ -174,7 +177,7 @@ def calc_fixed_horizon_allocations(args: Namespace, invest_horizon: int):
     # --------------------------- Strategic allocations -------------------------- #
     alphas_strategic, alphas_strategic_JV = run_allocation(log, 'Alpha Strategic', invest_horizon, tf.expand_dims(UNCONDITIONAL_MEAN, axis=0), v_prime_fn, args, SETTINGS, COMPUTED_SETTINGS)
 
-    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][-1, 0], invest_horizon
+    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][-1, 0], invest_horizon, data_t, data_tplus1, UNCONDITIONAL_MEAN
 
 
 def calc_term_fund_allocations(args: Namespace, term_date: str):
