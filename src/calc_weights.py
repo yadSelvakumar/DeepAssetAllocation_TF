@@ -209,11 +209,11 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
         alpha_strategic_t_hminus1, alpha_strategic_t_hminus1_JV = run_allocation(log, 'Strategic (h-1)', horizon-1, tf.expand_dims(UNCONDITIONAL_MEAN, axis=0), v_prime_fns[horizon-1], args, SETTINGS, COMPUTED_SETTINGS)
 
         # ---------------------------------- Saving ---------------------------------- #
-        alphas_strategic_h[horizon_idx] = tf.repeat(alpha_strategic_t_h, repeats=datat.shape[0], axis=0)
-        alphas_strategic_h_JV[horizon_idx] = tf.repeat(alpha_strategic_t_h_JV, repeats=datat.shape[0], axis=0)
+        alphas_strategic_h[horizon_idx] = tf.repeat(alpha_strategic_t_h, repeats=data_h_t.shape[0], axis=0)
+        alphas_strategic_h_JV[horizon_idx] = tf.repeat(alpha_strategic_t_h_JV, repeats=data_h_t.shape[0], axis=0)
 
-        alphas_strategic_hminus1[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1, repeats=datat.shape[0], axis=0)
-        alphas_strategic_hminus1_JV[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1_JV, repeats=datat.shape[0], axis=0)
+        alphas_strategic_hminus1[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1, repeats=data_h_t.shape[0], axis=0)
+        alphas_strategic_hminus1_JV[horizon_idx] = tf.repeat(alpha_strategic_t_hminus1_JV, repeats=data_h_t.shape[0], axis=0)
 
         alphas_tactical_t[horizon_idx], alphas_tactical_t_JV[horizon_idx] = alpha_tactical_t, alpha_tactical_t_JV
         alphas_tactical_tplus1[horizon_idx], alphas_tactical_tplus1_JV[horizon_idx] = alpha_tactical_tplus1, alpha_tactical_tplus1_JV
@@ -231,7 +231,7 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
     alphas_strategic = weighted_average(weight, alphas_strategic_h, alphas_strategic_hminus1)
     alphas_strategic_JV = weighted_average(weight, alphas_strategic_h_JV, alphas_strategic_hminus1_JV)
 
-    plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
+    plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor_check', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
 
     save_results(args.results_dir_save, 'target_date_investor_allocations',
                  alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:], invest_horizon)

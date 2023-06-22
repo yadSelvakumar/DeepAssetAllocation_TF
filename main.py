@@ -41,4 +41,4 @@ if __name__ == '__main__':
     from src.calc_weights import calc_fixed_horizon_allocations, calc_term_fund_allocations
     # train_model(args)
     # calc_fixed_horizon_allocations(args, invest_horizon=47)
-    calc_term_fund_allocations(args, invest_horizon=10)
+    calc_term_fund_allocations(args, invest_horizon=119)
