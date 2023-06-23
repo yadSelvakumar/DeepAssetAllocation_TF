@@ -35,11 +35,10 @@ class TrainingModel(K.Sequential):
             # Output layer
             self.add(K.layers.Dense(args.model_output_size, bias_initializer=K.initializers.Constant(value=args.initial_guess), activation=args.activation_function_output))
 
-    def train(self, train_data, number_epochs):
+    def train_ricardo(self, dataset, number_epochs):
         losses_primes = []
         weights = self.trainable_variables
-
-        dataset = tf.data.Dataset.from_tensor_slices(train_data)
+        
         buffer_size = round(self.indexes.shape[0] / 10)
         dataset.shuffle(buffer_size)
 
@@ -54,6 +53,45 @@ class TrainingModel(K.Sequential):
             losses_primes.append(mean_loss_prime)
         print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
         return losses_primes
+
+    def train_yad(self, train_data, number_epochs):
+        losses_primes = []
+        weights = self.trainable_variables
+
+        train_data_perm = tf.random.shuffle(train_data)
+        num_steps = round(train_data.shape[0]/self.batch_size)
+
+        gradients_of_primes = self.training_start(train_data_perm[:self.batch_size,:])
+        self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
+
+        for _ in trange(number_epochs):
+            train_data_perm = tf.random.shuffle(train_data)
+            mean_loss_prime = float('inf')
+            for i in range(num_steps):
+                mean_loss_prime = self.training_step(train_data_perm[self.batch_size*i:(i+1)*self.batch_size,:])
+            losses_primes.append(mean_loss_prime)
+        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
+        return losses_primes
+
+    def train_yad_new(self, train_data, number_epochs):
+        losses_primes = []
+        weights = self.trainable_variables
+        num_steps = round(train_data.shape[0]/self.batch_size)
+        
+        random_indexes = tf.random.shuffle(self.indexes)[:self.batch_size]
+        data_batch = tf.gather(train_data, random_indexes)
+
+        gradients_of_primes = self.training_start(data_batch)
+        self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
+
+        for _ in trange(number_epochs):
+            train_data_perm = tf.random.shuffle(train_data)
+            mean_loss_prime = float('inf')
+            for i in range(num_steps):
+                mean_loss_prime = self.training_step(train_data_perm[self.batch_size*i:(i+1)*self.batch_size,:])
+            losses_primes.append(mean_loss_prime)
+        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
+        return losses_primes        
 
     @tf.function(reduce_retracing=True)
     def objective_neuralnet(self, data_batch):
@@ -77,3 +115,45 @@ class TrainingModel(K.Sequential):
             value_prime_loss = self.objective_neuralnet(data)
         value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
         return value_prime_gradients
+
+    def train_old(self, train_data, number_epochs):
+        losses_primes = []
+        weights = self.trainable_variables
+
+        gradients_of_primes = self.training_start_old(train_data)
+        self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
+
+        for _ in trange(number_epochs):
+            mean_loss_prime = self.training_step_old(train_data)
+            losses_primes.append(mean_loss_prime)
+
+        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
+        return losses_primes
+
+
+
+    @tf.function(reduce_retracing=True)
+    def objective_neuralnet_old(self, data):
+        random_indexes = tf.random.shuffle(self.indexes)[:self.batch_size]
+        data_batch = tf.gather(data, random_indexes)
+
+        states_batch = data_batch[:, :self.num_states]
+        value_prime_optimal_batch = tf.expand_dims(data_batch[:, -1], axis=1)
+        error_value_prime_neuralnet = tf.reduce_mean(tf.square(value_prime_optimal_batch - self(states_batch)))
+
+        return error_value_prime_neuralnet   
+
+    @tf.function
+    def training_step_old(self, data):
+        with tf.GradientTape() as tape:
+            value_prime_loss = self.objective_neuralnet_old(data)
+        value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
+        self.optimizer.apply_gradients(zip(value_prime_gradients, self.trainable_variables))
+        return value_prime_loss
+
+    @tf.function()
+    def training_start_old(self, data):
+        with tf.GradientTape() as tape:
+            value_prime_loss = self.objective_neuralnet_old(data)
+        value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
+        return value_prime_gradients             

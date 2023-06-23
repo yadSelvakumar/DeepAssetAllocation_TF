@@ -57,7 +57,6 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     data[:, -1] = V[:, 0]
 
     data = tf.cast(data[:NUM_SAMPLES], tf.float32)
-
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
 
     # ------------------- Plotting -------------------
@@ -86,12 +85,16 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     log.info('Training neural network')
 
     model.compile(optimizer=model.optimizer, loss='mse')
-    losses = model.train(data, args.num_epochs)
+    training_dataset = tf.data.Dataset.from_tensor_slices(data)
+    losses = model.train_ricardo(training_dataset, args.num_epochs)
+    losses_yad = model.train_yad(data, args.num_epochs)
+    
+    losses_old = model.train_old(data, args.num_epochs*4)
 
-    plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
+    plot_loss(losses_yad[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
     model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
-    return model, alpha_neuralnet, losses
+    return model, alpha_neuralnet, losses_yad
 
 
 def train_model(args: Namespace, num_periods: int):
