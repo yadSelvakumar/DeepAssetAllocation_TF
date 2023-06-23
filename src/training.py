@@ -9,9 +9,9 @@ from logging import Logger
 from typing import Callable
 from time import time
 
+import src.utils as utils
 import tensorflow as tf
 import numpy as np
-import utils
 
 
 def plot_loss(losses, title, filepath):
@@ -43,10 +43,10 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
 
     log.info(f'Done...took: {(time() - start_time)/60} mins')
 
-    mean_abs_diff = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV), axis=0)
-    max_alpha_diff = 100*np.max(np.abs(alpha_neuralnet-alpha_JV), axis=0)
-    mean_diff = 100*np.mean(alpha_neuralnet-alpha_JV, axis=0)
-    total_mean_abs_error = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV))
+    mean_abs_diff: float = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV), axis=0)
+    max_alpha_diff: float = 100*np.max(np.abs(alpha_neuralnet-alpha_JV), axis=0)
+    mean_diff: float = 100*np.mean(alpha_neuralnet-alpha_JV, axis=0)
+    total_mean_abs_error: float = 100*np.mean(np.abs(alpha_neuralnet-alpha_JV))
 
     log.info(f'Mean abs diff (ppts): {mean_abs_diff}, Max alpha difference (ppts): {max_alpha_diff}, Mean diff (ppts): {mean_diff}, Loss = {loss[-1]}, Total mean abs error: {total_mean_abs_error}')
 
@@ -91,14 +91,14 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
     model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
-    return model, alpha_neuralnet
+    return model, alpha_neuralnet, losses
 
 
-def train_model(args: Namespace):
+def train_model(args: Namespace, num_periods: int):
     # --- Settings ---
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
-    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
+    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, *_ = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
@@ -138,10 +138,13 @@ def train_model(args: Namespace):
 
     alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
 
-    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, [])
+    model, last_alpha, losses = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, num_periods, [])
     prime_functions.append(model)
 
-    for period in range(1, NUM_PERIODS):
+    total_time = 0
+    for period in range(1, num_periods):
+        K.backend.clear_session()
+
         alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)
 
         weights = model.trainable_variables
@@ -150,15 +153,15 @@ def train_model(args: Namespace):
         # FIX: This is a hack to get the alpha from the previous period
         # I know where the error is, but this is the fastest way to fix it
         alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
-        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, weights)
+        model, last_alpha, losses = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, num_periods, weights)
         time_taken = time() - start_time
 
-        expected_time = time_taken * (NUM_PERIODS - period) / 60
+        expected_time = time_taken * (num_periods - period) / 60
         log.info(f'Period {period} took {time_taken/60} minutes')
         log.info(f'Expected time remaining: {expected_time} minutes')
 
         prime_functions.append(model)
-
-        K.backend.clear_session()
+        total_time += time_taken
 
     log.info('Training complete')
+    return total_time, losses

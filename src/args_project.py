@@ -1,12 +1,11 @@
-
 from argparse import ArgumentParser
 
 
-def parse_args(name: str, num_samples=True, default_decay_steps_alpha=625, default_num_epochs_alpha=50):
+def parse_args(name: str, default_num_samples=4096, default_batch_size=1024, default_decay_steps_alpha=625, default_num_epochs_alpha=50, default_num_epochs=100_000, is_test=False):
     parser = ArgumentParser(name)
-    if num_samples:
-        parser.add_argument("--num_samples", type=int, default=4096, help="number of training trajectories")
-    parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
+    if default_num_samples:
+        parser.add_argument("--num_samples", type=int, default=default_num_samples, help="number of training trajectories")
+    parser.add_argument("--batch_size", type=int, default=default_batch_size, help="size of the batches")
 
     parser.add_argument("--learning_rate_alpha", type=float, default=1e-3, help="learning rate for alpha training")
     parser.add_argument("--decay_steps_alpha", type=int, default=default_decay_steps_alpha, help="decay of learning rate steps for alpha training")  # 400
@@ -14,7 +13,7 @@ def parse_args(name: str, num_samples=True, default_decay_steps_alpha=625, defau
 
     parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
     parser.add_argument("--num_epochs_alpha", type=int, default=default_num_epochs_alpha, help="alpha number of epochs")
-    parser.add_argument("--num_epochs", type=int, default=100_000, help="number of epochs training")
+    parser.add_argument("--num_epochs", type=int, default=default_num_epochs, help="number of epochs training")
     parser.add_argument('--alpha_constraint', type=str, choices=['retail-relu', 'sum-to-1'], default='retail-relu', help='constraints for alpha')
 
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate for training")
@@ -36,4 +35,4 @@ def parse_args(name: str, num_samples=True, default_decay_steps_alpha=625, defau
 
     parser.add_argument('--settings_file', type=str, default='settings/model_settings_la_caixa_new.mat', help='matlab settings file')
 
-    return parser.parse_args()
+    return parser.parse_args() if not is_test else parser.parse_known_args()[0]

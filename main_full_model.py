@@ -5,4 +5,4 @@ args: Namespace = parse_args('DeepAssetAllocationTraining')
 
 if __name__ == '__main__':
     from src.training import train_model
-    train_model(args)
+    train_model(args, 120)

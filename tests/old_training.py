@@ -6,7 +6,7 @@ from tensorflow import keras as K
 from argparse import Namespace
 from scipy.io import loadmat
 from logging import Logger
-from typing import Callable, cast
+from typing import Callable
 from time import time
 
 import src.utils as utils

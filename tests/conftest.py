@@ -1,5 +1,6 @@
-from tensorflow import keras as K
 from src.training_initializer import TrainingInitializer
+from src.args_project import parse_args
+from argparse import Namespace
 from old_initializer import *
 from old_utils import *
 
@@ -12,6 +13,11 @@ import pytest
 @pytest.fixture
 def tf_test() -> tf.test.TestCase:
     return tf.test.TestCase()
+
+
+@pytest.fixture
+def args() -> Namespace:
+    return parse_args('Train Args', 512, 32, default_num_epochs=100, is_test=True)
 
 
 @pytest.fixture

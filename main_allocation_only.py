@@ -1,7 +1,7 @@
 from argparse import Namespace
 from src.args_project import parse_args
 
-args: Namespace = parse_args('DeepAssetAllocationOnly', False, 3000, 256)
+args: Namespace = parse_args('DeepAssetAllocationOnly', False, default_decay_steps_alpha=3000, default_num_epochs_alpha=256)
 
 if __name__ == '__main__':
     from src.calc_weights_realtime import calc_fixed_horizon_allocations, calc_term_fund_allocations, save_results
