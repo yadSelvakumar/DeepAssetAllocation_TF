@@ -18,5 +18,3 @@ def test_jv_allocation_period(alpha_allocation: tf.Variable, initializer: Traini
     u_alpha = initializer.jv_allocation_period(0, states)
 
     tf_test.assertAllClose(alpha, u_alpha, rtol=1e-5, atol=1e-5)
-
- 

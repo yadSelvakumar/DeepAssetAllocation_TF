@@ -17,17 +17,13 @@ def test_unpack_mars(mars_settings, mars_file):
     assert P == U_P
     assert NUM_PERIODS == U_NUM_PERIODS
 
-def test_get_model_settings(model_settings, mars_settings, mars_file):
-    tft = tf.test.TestCase()
+def test_get_model_settings(model_settings, mars_settings, mars_file, tf_test):
+    COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL, HETA_RF, HETA_R = model_settings
+    U_COVARIANCE_MATRIX, U_UNCONDITIONAL_MEAN, U_SIGMA_DIAGONAL, U_HETA_RF, U_HETA_R = get_model_settings(mars_settings, mars_file)
 
-    GAMMA_MINUS, GAMMA_INVERSE, COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL, HETA_RF, HETA_R = model_settings
-    U_GAMMA_MINUS, U_GAMMA_INVERSE, U_COVARIANCE_MATRIX, U_UNCONDITIONAL_MEAN, U_SIGMA_DIAGONAL, U_HETA_RF, U_HETA_R = get_model_settings(mars_settings, mars_file)
-
-    assert GAMMA_MINUS == U_GAMMA_MINUS
-    assert GAMMA_INVERSE == U_GAMMA_INVERSE
-    tft.assertAllClose(COVARIANCE_MATRIX, U_COVARIANCE_MATRIX)
-    tft.assertAllClose(UNCONDITIONAL_MEAN, U_UNCONDITIONAL_MEAN, atol=1e-5, rtol=1e-5)
-    tft.assertAllClose(SIGMA_DIAGONAL, U_SIGMA_DIAGONAL)
-    tft.assertAllClose(HETA_RF, U_HETA_RF)
-    tft.assertAllClose(HETA_R, U_HETA_R)
+    tf_test.assertAllClose(COVARIANCE_MATRIX, U_COVARIANCE_MATRIX)
+    tf_test.assertAllClose(UNCONDITIONAL_MEAN, U_UNCONDITIONAL_MEAN, atol=1e-5, rtol=1e-5)
+    tf_test.assertAllClose(SIGMA_DIAGONAL, U_SIGMA_DIAGONAL)
+    tf_test.assertAllClose(HETA_RF, U_HETA_RF)
+    tf_test.assertAllClose(HETA_R, U_HETA_R)
 
