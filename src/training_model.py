@@ -43,17 +43,19 @@ class TrainingModel(K.Sequential):
         self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
 
         for _ in trange(number_epochs):
-            mean_loss_prime = self.training_step(train_data)
+            df = tf.data.Dataset.from_tensor_slices(train_data)
+            df.shuffle(buffer_size=round(self.indexes.shape[0] / 10))
+            
+            mean_loss_prime = float('inf')
+            for data_batch in df.batch(self.batch_size):
+                mean_loss_prime = self.training_step(data_batch)
             losses_primes.append(mean_loss_prime)
 
         print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
         return losses_primes
 
     @tf.function(reduce_retracing=True)
-    def objective_neuralnet(self, data):
-        random_indexes = tf.random.shuffle(self.indexes)[:self.batch_size]
-        data_batch = tf.gather(data, random_indexes)
-
+    def objective_neuralnet(self, data_batch):
         states_batch = data_batch[:, :self.num_states]
         value_prime_optimal_batch = tf.expand_dims(data_batch[:, -1], axis=1)
         error_value_prime_neuralnet = tf.reduce_mean(tf.square(value_prime_optimal_batch - self(states_batch)))
