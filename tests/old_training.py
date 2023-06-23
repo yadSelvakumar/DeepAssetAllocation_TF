@@ -142,7 +142,7 @@ def train_model(args: Namespace, num_periods: int):
     prime_functions.append(model)
 
     total_time = 0
-    for period in range(1, num_periods):
+    for period in range(1, num_periods + 1):
         K.backend.clear_session()
 
         alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)

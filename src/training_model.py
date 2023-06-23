@@ -39,18 +39,19 @@ class TrainingModel(K.Sequential):
         losses_primes = []
         weights = self.trainable_variables
 
-        gradients_of_primes = self.training_start(train_data)
+        dataset = tf.data.Dataset.from_tensor_slices(train_data)
+        buffer_size = round(self.indexes.shape[0] / 10)
+        dataset.shuffle(buffer_size)
+
+        gradients_of_primes = self.training_start(next(iter(dataset.batch(self.batch_size))))
         self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
 
         for _ in trange(number_epochs):
-            df = tf.data.Dataset.from_tensor_slices(train_data)
-            df.shuffle(buffer_size=round(self.indexes.shape[0] / 10))
-            
+            dataset.shuffle(buffer_size)
             mean_loss_prime = float('inf')
-            for data_batch in df.batch(self.batch_size):
+            for data_batch in dataset.batch(self.batch_size):
                 mean_loss_prime = self.training_step(data_batch)
             losses_primes.append(mean_loss_prime)
-
         print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
         return losses_primes
 

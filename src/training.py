@@ -142,11 +142,10 @@ def train_model(args: Namespace, num_periods: int):
     prime_functions.append(model)
 
     total_time = 0
-    for period in range(1, num_periods):
+    for period in range(1, num_periods + 1):
         K.backend.clear_session()
 
         alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)
-
         weights = model.trainable_variables
 
         start_time = time()
@@ -162,6 +161,7 @@ def train_model(args: Namespace, num_periods: int):
 
         prime_functions.append(model)
         total_time += time_taken
+        log.info(f'Total time in training: {total_time / 60} minutes')
 
     log.info('Training complete')
     return total_time, losses
