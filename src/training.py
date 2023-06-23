@@ -24,7 +24,6 @@ def plot_loss(losses, title, filepath):
 # TODO: also reduce parameters with passing settings
 # Notice that alpha_JV is only for logging purposes
 
-
 def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
     log.info(f'Initializing alpha optimizer\nPERIOD:{period}/{num_periods}')
 
@@ -79,16 +78,20 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     # ------------------------------------------------
 
     log.info('Initializing neural network')
-
     lr_optim_model = K.optimizers.schedules.ExponentialDecay(args.learning_rate, model_decay_steps, args.decay_rate, staircase=True)
     model = TrainingModel(weights, args, num_states, lr_optim_model)
 
+    start_time = time()
+    model.fit(data[:,:num_states],data[:,-1],epochs = args.num_epochs,batch_size = args.batch_size,verbose = 0)#,callbacks = [tqdm_callback])
+    log.info(f'NN training took: {(time() - start_time)/60} minutes')
+    # loss = model.evalute(data[:,:num_states],data[:,-1],epochs = args.num_epochs,batch_size = args.num_samples,verbose = 0)#,callbacks = [tqdm_callback])
+    
     log.info('Training neural network')
 
-    model.compile(optimizer=model.optimizer, loss='mse')
-    losses = model.train(data, args.num_epochs)
+    
+    # losses = model.train(data, args.num_epochs)
 
-    plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
+    # plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
     model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
     return model, alpha_neuralnet
