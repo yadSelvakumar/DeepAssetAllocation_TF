@@ -34,14 +34,21 @@ def load_nn_results(args, horizons) -> list[Callable]:
 
     return v_prime_fn
 
-def save_results(filedir: str, filename: str, alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, dates, investment_horizon):
+def save_results(filedir: str, filename: str, alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, dates_fixed_horizon, investment_horizon_fixed_horizon,alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, dates_target_date, investment_horizon_target_date, unconditional_mean):
     dict_save = {
-        "alphas_tactical": alphas_tactical,
-        "alphas_strategic": alphas_strategic,
-        "alphas_tactical_JV": alphas_tactical_JV,
-        "alphas_strategic_JV": alphas_strategic_JV,
-        "dates": dates,
-        "investment_horizon": investment_horizon
+        "alphas_tactical_fixed_horizon": alphas_tactical_fixed_horizon,
+        "alphas_strategic_fixed_horizon": alphas_strategic_fixed_horizon,
+        "alphas_tactical_JV_fixed_horizon": alphas_tactical_JV_fixed_horizon,
+        "alphas_strategic_JV_fixed_horizon": alphas_strategic_JV_fixed_horizon,
+        "dates_fixed_horizon": dates_fixed_horizon,
+        "investment_horizon_fixed_horizon": investment_horizon_fixed_horizon,
+        "alphas_tactical_target_date": alphas_tactical_target_date,
+        "alphas_strategic_target_date": alphas_strategic_target_date,
+        "alphas_tactical_JV_target_date": alphas_tactical_JV_target_date,
+        "alphas_strategic_JV_target_date": alphas_strategic_JV_target_date,
+        "dates_target_date": dates_target_date,
+        "investment_horizon_target_date": investment_horizon_target_date,
+        "unconditional_mean":unconditional_mean        
     }
     sp.io.savemat(f'{filedir}/{filename}.mat', dict_save, format='4')
 
@@ -159,11 +166,10 @@ def calc_fixed_horizon_allocations(args: Namespace, invest_horizon: int):
 
     plot_and_save(args.figures_dir_save, f'realized_allocations_horizon_{invest_horizon}_new', pandas_dates, [alphas_tactical], [alphas_tactical_JV])
 
-    save_results(args.results_dir_save, 'fixed_horizon_allocations',
-                 alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"], invest_horizon)
+    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][:, 0], invest_horizon, UNCONDITIONAL_MEAN
 
 
-def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
+def calc_term_fund_allocations(args: Namespace, term_date: int):
     MARS_FILE, SETTINGS, COMPUTED_SETTINGS = get_settings(args)
 
     NUM_ASSETS = SETTINGS[2]
@@ -173,14 +179,14 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
     log.info(f"Device: {'/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0'}")
 
     # --- End Settings ---
-    v_prime_fns = load_nn_results(args, invest_horizon)
-
     # --------------------------- Term calculations --------------------------- #
     pandas_dates = pd.to_datetime(MARS_FILE["dates"][2606:, 0]-719529, unit='d')
-    investment_end = pandas_dates[0] + pd.DateOffset(months=invest_horizon)
-
-    remaining_horizons = np.int64(((investment_end - pandas_dates)/np.timedelta64(1, 'M')))
+    remaining_horizons = np.int64(((pd.to_datetime(term_date) - pandas_dates)/np.timedelta64(1, 'M')))
     unique_remaining_horizons = np.unique(remaining_horizons)[::-1]
+
+    #Load value functions
+    v_prime_fns = load_nn_results(args, remaining_horizons[0])
+
     # --------------------------------- Data --------------------------------- #
     datat, datatplus1 = MARS_FILE["states_history"][2606:], MARS_FILE["states_history2"][2606:]
     empty_alpha = np.zeros((datat.shape[0], NUM_ASSETS))
@@ -232,5 +238,4 @@ def calc_term_fund_allocations(args: Namespace, invest_horizon: int):
 
     plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor_check', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
 
-    save_results(args.results_dir_save, 'target_date_investor_allocations',
-                 alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:], invest_horizon)
+    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][:,0], remaining_horizons[0]

@@ -1,20 +1,19 @@
 from argparse import ArgumentParser, Namespace
 
 parser = ArgumentParser('DeepAssetAllocationTraining')
-parser.add_argument("--num_samples", type=int, default=4096, help="number of training trajectories")
 parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
 
 parser.add_argument("--learning_rate_alpha", type=float, default=1e-3, help="learning rate for alpha training")
-parser.add_argument("--decay_steps_alpha", type=int, default=625, help="decay of learning rate steps for alpha training")  # 400
+parser.add_argument("--decay_steps_alpha", type=int, default=3000, help="first period decay of learning rate steps for alpha training")  # 400
 parser.add_argument("--decay_rate_alpha", type=float, default=.5, help="decay of learning rate for alpha training")
 
 parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
-parser.add_argument("--num_epochs_alpha", type=int, default=50, help="alpha number of epochs")
+parser.add_argument("--num_epochs_alpha", type=int, default=256, help="alpha number of epochs")
 parser.add_argument("--num_epochs", type=int, default=100_000, help="number of epochs training")
 parser.add_argument('--alpha_constraint', type=str, choices=['retail-relu', 'sum-to-1'], default='retail-relu', help='constraints for alpha')
 
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate for training")
-parser.add_argument("--decay_steps", type=int, default=25_000, help="decay of learning rate steps for training")
+parser.add_argument("--decay_steps", type=int, default=25_000, help="first period decay of learning rate steps for training")
 parser.add_argument("--decay_rate", type=float, default=.5, help="decay of learning rate for training")
 
 parser.add_argument('--model_output_size', type=int, default=1, help='output size of the model')
@@ -35,5 +34,9 @@ parser.add_argument('--settings_file', type=str, default='settings/model_setting
 args: Namespace = parser.parse_args()
 
 if __name__ == '__main__':
-    from src.training import train_model
-    train_model(args)
+    from src.calc_weights_full_sample import calc_fixed_horizon_allocations, calc_term_fund_allocations, save_results
+    import pandas as pd
+    date_today = pd.to_datetime('today').strftime("%Y-%m-%d")
+    alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, unconditional_mean = calc_fixed_horizon_allocations(args, invest_horizon=48)
+    alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date =  calc_term_fund_allocations(args, term_date='12-31-2024')
+    save_results(args.results_dir_save, f'real_time_allocations_{date_today}',alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date, unconditional_mean)
