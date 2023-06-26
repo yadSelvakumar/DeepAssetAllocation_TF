@@ -236,6 +236,6 @@ def calc_term_fund_allocations(args: Namespace, term_date: int):
     alphas_strategic = weighted_average(weight, alphas_strategic_h, alphas_strategic_hminus1)
     alphas_strategic_JV = weighted_average(weight, alphas_strategic_h_JV, alphas_strategic_hminus1_JV)
 
-    plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor_check', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
+    plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
 
-    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][:,0], remaining_horizons[0]
+    return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:,0], remaining_horizons[0]
