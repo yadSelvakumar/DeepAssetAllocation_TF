@@ -29,7 +29,7 @@ parser.add_argument('--results_dir_save', type=str, default='results_save', help
 parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
 parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
 
-parser.add_argument('--settings_file', type=str, default='settings/model_settings_la_caixa_new.mat', help='matlab settings file')
+parser.add_argument('--settings_file', type=str, default='settings/model_settings_tealbook_0627.mat', help='matlab settings file')
 
 args: Namespace = parser.parse_args()
 
@@ -38,5 +38,5 @@ if __name__ == '__main__':
     import pandas as pd
     date_today = pd.to_datetime('today').strftime("%Y-%m-%d")
     alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, unconditional_mean = calc_fixed_horizon_allocations(args, invest_horizon=48)
-    alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date =  calc_term_fund_allocations(args, term_date='12-31-2024')
-    save_results(args.results_dir_save, f'real_time_allocations_{date_today}',alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date, unconditional_mean)
+    alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date =  calc_term_fund_allocations(args, term_date='12-01-2024')
+    save_results(args.results_dir_save, f'full_sample_allocations_{date_today}',alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date, unconditional_mean)
