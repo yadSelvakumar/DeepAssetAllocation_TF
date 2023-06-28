@@ -5,13 +5,13 @@ parser.add_argument("--num_samples", type=int, default=4096, help="number of tra
 parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
 
 parser.add_argument("--learning_rate_alpha", type=float, default=1e-3, help="learning rate for alpha training")
-parser.add_argument("--decay_steps_alpha", type=int, default=625, help="decay of learning rate steps for alpha training")  # 400
+parser.add_argument("--decay_steps_alpha", type=int, default=625, help="decay of learning rate steps for alpha training")  # 625
 parser.add_argument("--decay_rate_alpha", type=float, default=.5, help="decay of learning rate for alpha training")
 
 parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
 parser.add_argument("--num_epochs_alpha", type=int, default=50, help="alpha number of epochs")
 parser.add_argument("--num_epochs", type=int, default=100_000, help="number of epochs training")
-parser.add_argument('--alpha_constraint', type=str, choices=['retail-relu', 'sum-to-1'], default='retail-relu', help='constraints for alpha')
+parser.add_argument('--alpha_constraint', type=str, choices=['retail-relu', 'sum-to-1'], default='sum-to-1', help='constraints for alpha')
 
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate for training")
 parser.add_argument("--decay_steps", type=int, default=25_000, help="decay of learning rate steps for training")
@@ -30,7 +30,7 @@ parser.add_argument('--results_dir_save', type=str, default='results_save', help
 parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
 parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
 
-parser.add_argument('--settings_file', type=str, default='settings/model_settings_la_caixa_new.mat', help='matlab settings file')
+parser.add_argument('--settings_file', type=str, default='settings/qmas_bt_20230627_with_alloc.mat', help='matlab settings file')
 
 args: Namespace = parser.parse_args()
 

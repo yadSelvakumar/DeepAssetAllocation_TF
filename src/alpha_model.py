@@ -50,7 +50,7 @@ class AlphaModel(K.Model):
             alphas = alphas.write(iter_alpha, alpha_epoch * self.inverse_iter_per_epoch)
 
             # if iter_alpha % 4 == 0:
-            # tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
+            #     tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, summarize=1) "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
 
         return alphas.stack()[-1], EUs.stack()[-1], losses.stack()
 
@@ -109,7 +109,19 @@ class AlphaModel(K.Model):
 
     @tf.function(reduce_retracing=True)
     def value_function_MC_V(self, states_prime, value_prime, alpha):
-        Rf = tf.expand_dims(tf.exp(states_prime[:, :, 0]), 2)
+
+        idx_xa_rf = 0
+        idx_inf = 12
+        idx_inf_lagged = 27
+
+        # Convert risk-free
+        r_f = states_prime[:, :, idx_xa_rf] # This is ex-ante risk-free.
+        inf = states_prime[:, :, idx_inf]
+        inf_lagged = states_prime[:, :, idx_inf_lagged]
+        xp_r_f = r_f - inf_lagged + inf # This is ex-post risk-free return
+
+        # Calculate portfolio return
+        Rf = tf.expand_dims(tf.exp(xp_r_f), 2)
         R = Rf * tf.exp(states_prime[:, :, 1:self.num_assets])
         omega = tf.matmul(tf.concat((Rf, R), 2), tf.expand_dims(alpha, -1))
 

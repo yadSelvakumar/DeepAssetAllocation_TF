@@ -20,7 +20,7 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
     SIGMA_VARS: tf.Tensor = tf.convert_to_tensor(parameters["Sigma"][0][0], dtype)
 
     P: int = settings["p"][0][0][0][0]
-    NUM_PERIODS = 120 # settings["allocationSettings"][0][0][0][0][1][0][0]
+    NUM_PERIODS = settings["allocationSettings"][0][0][0][0][1][0][0]
 
     A0: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A0"], tf.float32))
     A1: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A1"], tf.float32))
@@ -39,13 +39,7 @@ def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[tf.Te
     SIGMA_DIAGONAL_SQRT_VARS: tf.Tensor = tf.sqrt(tf.linalg.diag_part(SIGMA_VARS)[:NUM_VARS])
     SIGMA_DIAGONAL: tf.Tensor = tf.tile(SIGMA_DIAGONAL_SQRT_VARS, [P])
 
-    HETA_RF: tf.Tensor = tf.zeros((1, NUM_STATES))
-    HETA_RF = tf.tensor_scatter_nd_update(HETA_RF, [[0, 0]], tf.ones(1))
-    
-    HETA_R: tf.Tensor = tf.zeros((NUM_ASSETS, NUM_STATES))
-    HETA_R = tf.tensor_scatter_nd_update(HETA_R, [[i, i+1] for i in range(NUM_ASSETS)], tf.ones(NUM_ASSETS))
-
-    return COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL, HETA_RF, HETA_R
+    return COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, SIGMA_DIAGONAL
 
 
 def add_handler_logger(logger: logging.Logger, handler: Union[logging.FileHandler, logging.StreamHandler]) -> None:
@@ -81,3 +75,8 @@ def print_tensor(x: tf.Tensor, mean=True, min=False, max=False) -> None:
 def print_tensors(*args, mean=True, min=False, max=False) -> None:
     for x in args:
         print_tensor(x, mean, min, max)
+
+def check_est_flag(settings_file):
+    from scipy.io import loadmat
+    MARS_FILE = loadmat(settings_file)
+    return MARS_FILE["EstFlag"][0][0]

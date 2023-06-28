@@ -64,10 +64,10 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
 
     plot_loss(loss, f'Optim loss, period {period}', f'{args.figures_dir}/losses_period_{period}.png')
 
-    assets = ["Cash", "Equity", "Bond", "Commodity"]
+    assets = ["Cash", "Equity", "Bond (10Y)", "Commodity", "Real bond"]
     plt.figure(figsize=(12, 10))
     for j in range(alpha_model.alpha.shape[1]):
-        plt.subplot(2, 2, j+1)
+        plt.subplot(2, 3, j+1)
         plt.plot(alpha_neuralnet[:, j], color='tab:green', label='NN', linewidth=1.0)
         plt.plot(alpha_JV[:, j], color='black', linestyle='--', label='JV', linewidth=0.8)
 
