@@ -61,20 +61,21 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
 
     # ------------------- Plotting -------------------
+    if args.plot_toggle==1:
+        plot_loss(loss, f'Optim loss, period {period}', f'{args.figures_dir}/losses_period_{period}.png')
 
-    plot_loss(loss, f'Optim loss, period {period}', f'{args.figures_dir}/losses_period_{period}.png')
+        assets = ["Cash", "Equity", "Bond (10Y)", "Commodity", "Real bond"]
+        plt.figure(figsize=(12, 10))
+        for j in range(alpha_model.alpha.shape[1]):
+            plt.subplot(2, 3, j+1)
+            plt.plot(alpha_neuralnet[:, j], color='tab:green', label='NN', linewidth=1.0)
+            plt.plot(alpha_JV[:, j], color='black', linestyle='--', label='JV', linewidth=0.8)
 
-    assets = ["Cash", "Equity", "Bond (10Y)", "Commodity", "Real bond"]
-    plt.figure(figsize=(12, 10))
-    for j in range(alpha_model.alpha.shape[1]):
-        plt.subplot(2, 3, j+1)
-        plt.plot(alpha_neuralnet[:, j], color='tab:green', label='NN', linewidth=1.0)
-        plt.plot(alpha_JV[:, j], color='black', linestyle='--', label='JV', linewidth=0.8)
-
-        plt.title(f'{assets[j]}')
-        if j == 0:
-            plt.legend()
-    plt.savefig(f'{args.figures_dir}/allocations_period_{period}.png')
+            plt.title(f'{assets[j]}')
+            if j == 0:
+                plt.legend()
+        plt.savefig(f'{args.figures_dir}/allocations_period_{period}.png')
+        plt.close()
 
     # ------------------------------------------------
 
@@ -88,7 +89,10 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     model.compile(optimizer=model.optimizer, loss='mse')
     losses = model.train(data, args.num_epochs)
 
-    plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
+    if args.plot_toggle==1:
+        plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
+        plt.close()
+        
     model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
     return model, alpha_neuralnet

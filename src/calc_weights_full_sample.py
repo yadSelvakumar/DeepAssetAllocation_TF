@@ -68,6 +68,7 @@ def plot_and_save(filedir: str, filename: str, pandas_dates, nns: list, jvs: lis
         if i == 0:
             plt.legend()
     plt.savefig(f'{filedir}/{filename}.png')
+    plt.close()
 
 
 def run_allocation(log: Logger, allocation_name: str, invest_horizon: int, data: tf.Tensor, v_prime_fn: Callable, args: Namespace, SETTINGS: tuple, COMPUTED_SETTINGS: tuple) -> tuple[tf.Tensor, tf.Tensor]:
@@ -163,8 +164,8 @@ def calc_fixed_horizon_allocations(args: Namespace, invest_horizon: int):
 
     # --------------------------- Strategic allocations -------------------------- #
     alphas_strategic, alphas_strategic_JV = run_allocation(log, 'Alpha Strategic', invest_horizon, tf.expand_dims(UNCONDITIONAL_MEAN, axis=0), v_prime_fn, args, SETTINGS, COMPUTED_SETTINGS)
-
-    plot_and_save(args.figures_dir_save, f'realized_allocations_horizon_{invest_horizon}_new', pandas_dates, [alphas_tactical], [alphas_tactical_JV])
+    if args.plot_toggle==1:
+        plot_and_save(args.figures_dir_save, f'realized_allocations_horizon_{invest_horizon}_new', pandas_dates, [alphas_tactical], [alphas_tactical_JV])
 
     return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][:, 0], invest_horizon, UNCONDITIONAL_MEAN
 
@@ -235,7 +236,7 @@ def calc_term_fund_allocations(args: Namespace, term_date: int):
 
     alphas_strategic = weighted_average(weight, alphas_strategic_h, alphas_strategic_hminus1)
     alphas_strategic_JV = weighted_average(weight, alphas_strategic_h_JV, alphas_strategic_hminus1_JV)
-
-    plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
+    if args.plot_toggle==1:
+        plot_and_save(args.figures_dir_save, 'realized_allocations_target_date_investor', pandas_dates, [alphas_tactical, alphas_strategic], [alphas_tactical_JV, alphas_strategic_JV])
 
     return alphas_tactical, alphas_strategic, alphas_tactical_JV, alphas_strategic_JV, MARS_FILE["dates"][2606:,0], remaining_horizons[0]

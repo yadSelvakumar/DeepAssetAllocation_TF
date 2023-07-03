@@ -30,6 +30,7 @@ def main_full_model(setting_file):
     parser.add_argument('--results_dir_save', type=str, default='results_save', help='directory for results to save')
     parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
     parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+    parser.add_argument('--plot_toggle', type=int, default=1, help='indicator to print figures')
 
     parser.add_argument('--settings_file', type=str, default=setting_file, help='matlab settings file')
 
@@ -117,6 +118,7 @@ def main_allocation_full_sample(settings_file,nn_saved_file):
     parser.add_argument('--results_dir_save', type=str, default=nn_saved_file, help='directory for results to save')
     parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
     parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+    parser.add_argument('--plot_toggle', type=int, default=1, help='indicator to print figures')
 
     parser.add_argument('--settings_file', type=str, default=settings_file, help='matlab settings file')
 
