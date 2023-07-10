@@ -7,7 +7,7 @@ import numpy as np
 class TrainingModel(K.Sequential):
     def __init__(self, weights, args, num_states, lr_optim):
         super().__init__()
-        self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
+        self.optimizer = tf.optimizers.Adam(lr_optim)  # type: ignore
         self.num_states = num_states
         self.batch_size = args.batch_size
         self.indexes = tf.range(args.num_samples)
@@ -35,42 +35,28 @@ class TrainingModel(K.Sequential):
             # Output layer
             self.add(K.layers.Dense(args.model_output_size, bias_initializer=K.initializers.Constant(value=args.initial_guess), activation=args.activation_function_output))
 
+    @tf.function(reduce_retracing=False)
     def train(self, train_data, number_epochs):
-        losses_primes = []
+        losses_primes = tf.TensorArray(tf.float32, size=number_epochs, dynamic_size=True, clear_after_read=False)
         weights = self.trainable_variables
 
-        gradients_of_primes = self.training_start(train_data)
-        self.optimizer.apply_gradients(zip(gradients_of_primes, weights))
-
-        for _ in trange(number_epochs):
+        for epoch in tf.range(number_epochs):
             mean_loss_prime = self.training_step(train_data)
-            losses_primes.append(mean_loss_prime)
+            losses_primes = losses_primes.write(epoch, mean_loss_prime)
+        return losses_primes.stack()
 
-        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
-        return losses_primes
+    @tf.function(reduce_retracing=True, jit_compile=True)
+    def custom_loss(self, data):
+        states, v = data
+        random_idx = tf.random.shuffle(self.indexes[:self.batch_size])
+        states_batch = tf.gather(states, random_idx)
+        v_batch = tf.gather(v, random_idx)
+        return tf.reduce_mean(tf.square(v_batch - self(states_batch)))
 
-    @tf.function(reduce_retracing=True)
-    def objective_neuralnet(self, data):
-        random_indexes = tf.random.shuffle(self.indexes)[:self.batch_size]
-        data_batch = tf.gather(data, random_indexes)
-
-        states_batch = data_batch[:, :self.num_states]
-        value_prime_optimal_batch = tf.expand_dims(data_batch[:, -1], axis=1)
-        error_value_prime_neuralnet = tf.reduce_mean(tf.square(value_prime_optimal_batch - self(states_batch)))
-
-        return error_value_prime_neuralnet
-
-    @tf.function
+    @tf.function(reduce_retracing=True, jit_compile=True)
     def training_step(self, data):
         with tf.GradientTape() as tape:
-            value_prime_loss = self.objective_neuralnet(data)
+            value_prime_loss = self.custom_loss(data)
         value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(value_prime_gradients, self.trainable_variables))
         return value_prime_loss
-
-    @tf.function()
-    def training_start(self, data):
-        with tf.GradientTape() as tape:
-            value_prime_loss = self.objective_neuralnet(data)
-        value_prime_gradients = tape.gradient(value_prime_loss, self.trainable_variables)
-        return value_prime_gradients
