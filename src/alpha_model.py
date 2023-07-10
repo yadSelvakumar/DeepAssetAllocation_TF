@@ -29,13 +29,10 @@ class AlphaModel(K.Model):
 
     def initialize(self, value_prime_func, initial_alpha, lr_optim):
         self.alpha.assign(initial_alpha)
-        self.optimizer = K.optimizers.Adam(lr_optim)  # type: ignore
+        self.optimizer = tf.optimizers.Adam(lr_optim)  # type: ignore
 
         epsilon = tf.random.normal(self.epsilon_shape)
         states_prime, value_prime = self.value_prime_repeated_fn(epsilon, value_prime_func)
-
-        alpha_grad = self.initialize_optimal_alpha(states_prime, value_prime)
-        self.optimizer.apply_gradients(zip([alpha_grad], [self.alpha]))
 
     @tf.function
     def call(self, value_prime_func, number_epochs) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
@@ -49,8 +46,8 @@ class AlphaModel(K.Model):
             EUs = EUs.write(iter_alpha, EU_epoch * self.inverse_iter_per_epoch)
             alphas = alphas.write(iter_alpha, alpha_epoch * self.inverse_iter_per_epoch)
 
-            # if iter_alpha % 4 == 0:
-            #     tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch, summarize=1) "alpha diff: ", 100*tf.reduce_mean(tf.math.abs(alpha_epoch * self.inverse_iter_per_epoch - alpha_JV)), "(", approx_time, "secs remaining)", summarize=1)
+            if iter_alpha % 4 == 0:
+                tf.print(iter_alpha, '/', number_epochs,"loss:",loss_epoch * self.inverse_iter_per_epoch)
 
         return alphas.stack()[-1], EUs.stack()[-1], losses.stack()
 
