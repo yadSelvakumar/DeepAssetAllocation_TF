@@ -1,5 +1,7 @@
-def main_full_model(setting_file):
-    from argparse import ArgumentParser, Namespace
+import os
+from argparse import ArgumentParser, Namespace
+
+def main_full_model(setting_file, HOME_DIR):
 
     parser = ArgumentParser('DeepAssetAllocationTraining')
     parser.add_argument("--num_samples", type=int, default=4096, help="number of training trajectories")
@@ -25,11 +27,11 @@ def main_full_model(setting_file):
     parser.add_argument('--activation_function_output', type=str, choices=['tanh', 'relu', 'linear'], default='linear', help='activation function for output layer')
     parser.add_argument('--initial_guess', type=float, default=1, help='initial guess for model')
 
-    parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
-    parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
-    parser.add_argument('--results_dir_save', type=str, default='results_save', help='directory for results to save')
-    parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
-    parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+    parser.add_argument('--results_dir', type=str, default=os.path.join(HOME_DIR, 'results'), help='directory for results')
+    parser.add_argument('--figures_dir', type=str, default=os.path.join(HOME_DIR, 'figures'), help='directory for figures')
+    parser.add_argument('--results_dir_save', type=str, default=os.path.join(HOME_DIR, 'results_save'), help='directory for results to save')
+    parser.add_argument('--figures_dir_save', type=str, default=os.path.join(HOME_DIR, 'figures_save'), help='directory for figures to save')
+    parser.add_argument('--logs_dir', type=str, default=os.path.join(HOME_DIR, 'logs'), help='directory for logs')
     parser.add_argument('--plot_toggle', type=int, default=1, help='indicator to print figures')
 
     parser.add_argument('--settings_file', type=str, default=setting_file, help='matlab settings file')
@@ -41,9 +43,7 @@ def main_full_model(setting_file):
     train_model(args)
 
 
-def main_allocation_daily(settings_file,nn_saved_file):
-
-    from argparse import ArgumentParser, Namespace
+def main_allocation_daily(settings_file, nn_saved_file, HOME_DIR):
 
     parser = ArgumentParser('DeepAssetAllocationTraining')
     parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
@@ -68,11 +68,11 @@ def main_allocation_daily(settings_file,nn_saved_file):
     parser.add_argument('--activation_function_output', type=str, choices=['tanh', 'relu', 'linear'], default='linear', help='activation function for output layer')
     parser.add_argument('--initial_guess', type=float, default=1, help='initial guess for model')
 
-    parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
-    parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
+    parser.add_argument('--results_dir', type=str, default=os.path.join(HOME_DIR, 'results'), help='directory for results')
+    parser.add_argument('--figures_dir', type=str, default=os.path.join(HOME_DIR, 'figures'), help='directory for figures')
     parser.add_argument('--results_dir_save', type=str, default=nn_saved_file, help='directory for results to save')
-    parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
-    parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+    parser.add_argument('--figures_dir_save', type=str, default=os.path.join(HOME_DIR, 'figures_save'), help='directory for figures to save')
+    parser.add_argument('--logs_dir', type=str, default=os.path.join(HOME_DIR, 'logs'), help='directory for logs')
 
     parser.add_argument('--settings_file', type=str, default=settings_file, help='matlab settings file')
 
@@ -87,9 +87,7 @@ def main_allocation_daily(settings_file,nn_saved_file):
     save_results(args.results_dir_save, f'check_real_time_allocations_{date_today}',alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date, data_t, data_tplus1, unconditional_mean)
 
 
-def main_allocation_full_sample(settings_file,nn_saved_file):
-    from argparse import ArgumentParser, Namespace
-
+def main_allocation_full_sample(settings_file, nn_saved_file, HOME_DIR):
     parser = ArgumentParser('DeepAssetAllocationTraining')
     parser.add_argument("--batch_size", type=int, default=1024, help="size of the batches")
 
@@ -113,11 +111,11 @@ def main_allocation_full_sample(settings_file,nn_saved_file):
     parser.add_argument('--activation_function_output', type=str, choices=['tanh', 'relu', 'linear'], default='linear', help='activation function for output layer')
     parser.add_argument('--initial_guess', type=float, default=1, help='initial guess for model')
 
-    parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
-    parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
+    parser.add_argument('--results_dir', type=str, default=os.path.join(HOME_DIR, 'results'), help='directory for results')
+    parser.add_argument('--figures_dir', type=str, default=os.path.join(HOME_DIR, 'figures'), help='directory for figures')
     parser.add_argument('--results_dir_save', type=str, default=nn_saved_file, help='directory for results to save')
-    parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
-    parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')
+    parser.add_argument('--figures_dir_save', type=str, default=os.path.join(HOME_DIR, 'figures_save'), help='directory for figures to save')
+    parser.add_argument('--logs_dir', type=str, default=os.path.join(HOME_DIR, 'logs'), help='directory for logs')
     parser.add_argument('--plot_toggle', type=int, default=1, help='indicator to print figures')
 
     parser.add_argument('--settings_file', type=str, default=settings_file, help='matlab settings file')
@@ -131,4 +129,3 @@ def main_allocation_full_sample(settings_file,nn_saved_file):
     alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, unconditional_mean = calc_fixed_horizon_allocations(args, invest_horizon=48)
     alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date =  calc_term_fund_allocations(args, term_date='12-31-2024')
     save_results(args.results_dir_save, f'real_time_allocations_{date_today}',alphas_tactical_fixed_horizon, alphas_strategic_fixed_horizon, alphas_tactical_JV_fixed_horizon, alphas_strategic_JV_fixed_horizon, date_fixed_horizon, invest_horizon_fixed_horizon, alphas_tactical_target_date, alphas_strategic_target_date, alphas_tactical_JV_target_date, alphas_strategic_JV_target_date, date_target_date, invest_horizon_target_date, unconditional_mean)
-
