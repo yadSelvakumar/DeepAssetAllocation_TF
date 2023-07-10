@@ -9,10 +9,14 @@ from logging import Logger
 from typing import Callable
 from time import time
 
+import os
 import tensorflow as tf
 import numpy as np
-import utils
 
+try:
+    import utils
+except ImportError:
+    from src import utils
 
 def plot_loss(losses, title, filepath):
     plt.figure()
@@ -52,11 +56,7 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
 
     # TODO: can tensorflow all this numpy, and get it from alpha_optm
     V = (alpha_model.gamma_minus * J) ** alpha_model.gamma_minus_inverse
-
-    data[:, :num_states] = simulated_states
-    data[:, -1] = V[:, 0]
-
-    data = tf.cast(data[:NUM_SAMPLES], tf.float32)
+    data = tf.tuple([simulated_states, V[:,0]])
 
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': False})
 
@@ -85,14 +85,13 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     model = TrainingModel(weights, args, num_states, lr_optim_model)
 
     log.info('Training neural network')
-
-    model.compile(optimizer=model.optimizer, loss='mse')
     losses = model.train(data, args.num_epochs)
+    print(f'Done...\nTrain mean loss: {np.mean(np.array(losses)[-2000:])}')
 
     if args.plot_toggle==1:
         plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
         plt.close()
-        
+
     model.save(f"{args.results_dir}/value_{period}", options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"))
 
     return model, alpha_neuralnet
@@ -111,8 +110,6 @@ def train_model(args: Namespace):
     def set_var(name, value):
         log.info(f'{name}: {value}')
         return value
-
-    set_var('Device', '/GPU:0' if len(tf.config.list_physical_devices('GPU')) > 0 else '/CPU:0')
 
     NUM_SAMPLES = set_var('Number of Samples', args.num_samples)
     BATCH_SIZE = set_var('Batch Size:', args.batch_size)
@@ -138,23 +135,22 @@ def train_model(args: Namespace):
     SIMULATED_STATES, SIMULATED_STATES_MATRIX = init.get_states_simulation()
     alpha = tf.Variable(1*tf.random.uniform((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
     # alpha = tf.Variable(tf.constant([2.0,2.0,2.0,2.0])*tf.ones((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
-    alpha_JV_unc = init.jv_allocation_period(0, SIMULATED_STATES)
 
-    alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
-
-    model, last_alpha = train_period_model(0, log, args, prime_functions[0], alpha_JV_unc, alpha_JV_unc, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, [])
-    prime_functions.append(model)
-
-    for period in range(1, NUM_PERIODS):
+    weights = []
+    for period in range(0, NUM_PERIODS):
         alpha_JV_unc = init.jv_allocation_period(period, SIMULATED_STATES)
 
-        weights = model.trainable_variables
+        if period==0:
+            last_alpha = alpha_JV_unc
 
         start_time = time()
         # FIX: This is a hack to get the alpha from the previous period
         # I know where the error is, but this is the fastest way to fix it
-        alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
-        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, weights)
+        alpha_optm = AlphaModel(alpha, ALPHA_CONSTRAINT, args.iter_per_epoch, NUM_SAMPLES, NUM_ASSETS, GAMMA, \
+                          BATCH_SIZE, SIMULATED_STATES_MATRIX, COVARIANCE_MATRIX, EPSILON_SHAPE, PRIME_ARRAY_SHAPE, PRIME_REPEATED_SHAPE)
+
+        model, last_alpha = train_period_model(period, log, args, prime_functions[period], alpha_JV_unc, last_alpha, alpha_optm, \
+                          SIMULATED_STATES, NUM_STATES, args.decay_steps_alpha, args.decay_steps, NUM_PERIODS, weights)
         time_taken = time() - start_time
 
         expected_time = time_taken * (NUM_PERIODS - period) / 60
@@ -162,7 +158,7 @@ def train_model(args: Namespace):
         log.info(f'Expected time remaining: {expected_time} minutes')
 
         prime_functions.append(model)
-
         K.backend.clear_session()
+        weights = model.trainable_variables
 
     log.info('Training complete')
