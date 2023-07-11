@@ -107,15 +107,15 @@ class AlphaModel(K.Model):
     @tf.function(reduce_retracing=True)
     def value_function_MC_V(self, states_prime, value_prime, alpha):
 
-        idx_xa_rf = 0
+        idx_xa_rf_lagged = 15
         idx_inf = 12
         idx_inf_lagged = 27
 
         # Convert risk-free
-        r_f = states_prime[:, :, idx_xa_rf] # This is ex-ante risk-free.
+        r_f_lagged = states_prime[:, :, idx_xa_rf_lagged] # This is ex-ante risk-free.
         inf = states_prime[:, :, idx_inf]
         inf_lagged = states_prime[:, :, idx_inf_lagged]
-        xp_r_f = r_f - inf_lagged + inf # This is ex-post risk-free return
+        xp_r_f = r_f_lagged + inf - inf_lagged # This is ex-post risk-free return
 
         # Calculate portfolio return
         Rf = tf.expand_dims(tf.exp(xp_r_f), 2)

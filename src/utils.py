@@ -18,18 +18,16 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
     PHI_0: tf.Tensor = tf.convert_to_tensor(parameters["Phi0_C"][0][0], dtype)
     PHI_1: tf.Tensor = tf.convert_to_tensor(parameters["Phi1_C"][0][0], dtype)
     SIGMA_VARS: tf.Tensor = tf.convert_to_tensor(parameters["Sigma"][0][0], dtype)
+    SIGMA_COMPANION: tf.Tensor = tf.convert_to_tensor(parameters["Sigma_vC"][0][0], dtype)
 
     P: int = settings["p"][0][0][0][0]
     NUM_PERIODS = settings["allocationSettings"][0][0][0][0][1][0][0]
 
-    A0: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A0"], tf.float32))
-    A1: tf.Tensor = cast(tf.Tensor, tf.cast(MARS_FILE["A1"], tf.float32))
-
-    return GAMMA, NUM_VARS, NUM_ASSETS + 1, NUM_STATES, A0, A1, PHI_0, PHI_1, SIGMA_VARS, P, NUM_PERIODS
+    return GAMMA, NUM_VARS, NUM_ASSETS + 1, NUM_STATES, PHI_0, PHI_1, SIGMA_VARS, SIGMA_COMPANION,P, NUM_PERIODS
 
 # FIX: type warnings
 def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    _, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, SIGMA_VARS, P, _ = settings
+    _, NUM_VARS, NUM_ASSETS, NUM_STATES, PHI_0, PHI_1, SIGMA_VARS, _, P, _ = settings
     COVARIANCE_MATRIX: tf.Tensor = tf.concat([tf.cast(tf.linalg.cholesky(SIGMA_VARS[:NUM_VARS, :NUM_VARS]), tf.float32), tf.zeros((NUM_STATES-NUM_VARS, NUM_VARS), tf.float32)], axis=0)
 
     tf.test.TestCase().assertAllClose(tf.matmul(COVARIANCE_MATRIX, COVARIANCE_MATRIX, transpose_b=True), MARS_FILE["parameters"]["Sigma_vC"][0][0])

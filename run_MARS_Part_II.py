@@ -19,6 +19,7 @@ from src.utils import check_est_flag
 from src.main_scripts import main_full_model, main_allocation_daily
 
 settings_file = os.path.join(HOME_DIR, 'settings/qmas_bt_20230627_with_alloc.mat')
+# settings_file = os.path.join(HOME_DIR, 'settings/BT_20230707_with_alloc.mat')
 nn_saved_file = os.path.join(HOME_DIR, 'results_save')
 estimation_flag = check_est_flag(settings_file)
 

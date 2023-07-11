@@ -17,6 +17,7 @@ try:
     import utils
 except ImportError:
     from src import utils
+from src import jurek_viceira
 
 def plot_loss(losses, title, filepath):
     plt.figure()
@@ -101,9 +102,11 @@ def train_model(args: Namespace):
     # --- Settings ---
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
-    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
+    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, PHI_0, PHI_1, _, SIGMA_COMPANION, _, NUM_PERIODS = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
+    A0,A1 = jurek_viceira.compute_JV_matrices(PHI_0,PHI_1,SIGMA_COMPANION,MARS_FILE["settings"])
+    
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
     log = utils.create_logger(args.logs_dir, 'training')
 
