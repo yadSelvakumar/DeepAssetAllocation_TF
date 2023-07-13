@@ -1,0 +1,536 @@
+Date and Time of Run: 13/07/2023 17:18:25
+Device: /GPU:0
+Number of Samples: 4096
+Batch Size:: 1024
+Epsilon Shape:: [4096 1024   15]
+Prime Array Shape:: [4194304     165]
+Prime Repeated Shape:: [4096 1024    1]
+Alpha bounds:: sum-to-1
+_____ Optimization settings ______
+learning_rate_alpha: 0.001
+decay_steps_alpha: 625
+decay_rate_alpha: 0.5
+iter_per_epoch: 50
+num_epochs_alpha: 50
+alpha_constraint: sum-to-1
+_____ NeuralNet settings ______
+learning_rate: 0.0001
+decay_steps: 25000
+decay_rate: 0.5
+num_hidden_layers: 2
+num_neurons: 32
+activation_function: elu
+activation_function_output: linear
+--------------------- EXECUTING MODEL ---------------------
+--------- PERIOD:0/50 ---------
+Training alpha
+Done...took: 0.9897126992543538 mins
+Mean abs diff (ppts): [2.0021813  0.24932073 1.7151375  0.26446375 1.0468166 ], Max alpha difference (ppts): [8.692831  1.1733592 4.7747283 1.2293547 4.4195414], Mean diff (ppts): [-1.3622534  -0.06471036  1.7043959  -0.2040835  -0.0733513 ], Loss = 502.26019287109375, Total mean abs error: 1.055583916604519
+Training neural network
+Done...
+Train mean loss: 1.500082476013631e-06
+Assets written to: results/value_0/assets
+--------- PERIOD:1/50 ---------
+Training alpha
+Done...took: 1.0540921330451964 mins
+Mean abs diff (ppts): [2.4889555  0.3152416  1.8468068  0.35064664 1.3617624 ], Max alpha difference (ppts): [11.056113   1.5313387  6.1509075  1.5367851  5.8677435], Mean diff (ppts): [-1.43339    -0.14101668  1.8121101  -0.2894162   0.05171325], Loss = 490.41943359375, Total mean abs error: 1.2726816348731518
+Training neural network
+Done...
+Train mean loss: 7.667049999326991e-07
+Assets written to: results/value_1/assets
+Period 1 took 2.0434322555859885 minutes
+Expected time remaining: 100.12818052371343 minutes
+--------- PERIOD:2/50 ---------
+Training alpha
+Done...took: 1.0549543658892313 mins
+Mean abs diff (ppts): [2.5524356  0.32029733 1.8069214  0.3860509  1.4749887 ], Max alpha difference (ppts): [12.095022   1.5344381  5.9433193  1.7433927  6.742114 ], Mean diff (ppts): [-1.1823324  -0.15343828  1.6925035  -0.3188866  -0.03784649], Loss = 481.4347229003906, Total mean abs error: 1.3081395998597145
+Training neural network
+Done...
+Train mean loss: 5.55143060410046e-07
+Assets written to: results/value_2/assets
+Period 2 took 2.0436732212702435 minutes
+Expected time remaining: 98.09631462097168 minutes
+--------- PERIOD:3/50 ---------
+Training alpha
+Done...took: 1.0558767716089885 mins
+Mean abs diff (ppts): [2.6060653  0.37533137 1.8265731  0.39192274 1.5277733 ], Max alpha difference (ppts): [12.4796505  1.9509077  6.1962605  1.8601902  6.8441095], Mean diff (ppts): [-0.98946124 -0.18769975  1.674258   -0.3235895  -0.17350936], Loss = 471.6932678222656, Total mean abs error: 1.3455336913466454
+Training neural network
+Done...
+Train mean loss: 4.4755418571185146e-07
+Assets written to: results/value_3/assets
+Period 3 took 2.0232969522476196 minutes
+Expected time remaining: 95.09495675563812 minutes
+5 out of the last 5 calls to <function TrainingInitializer.jv_allocation_period at 0x7f2743edde10> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+--------- PERIOD:4/50 ---------
+5 out of the last 5 calls to <function AlphaModel.value_prime_repeated_fn at 0x7f25fccb41f0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+5 out of the last 5 calls to <function AlphaModel.initialize_optimal_alpha at 0x7f25fccb6170> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Training alpha
+5 out of the last 5 calls to <function AlphaModel.call at 0x7f25fccb6ef0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Done...took: 1.0568044781684875 mins
+Mean abs diff (ppts): [2.536613   0.43386006 1.7983977  0.38983834 1.6204221 ], Max alpha difference (ppts): [11.752808   2.3522675  6.1312914  1.8582761  6.930661 ], Mean diff (ppts): [-0.6781841  -0.1856984   1.6208034  -0.28454715 -0.4723776 ], Loss = 463.3887023925781, Total mean abs error: 1.3558251783251762
+Training neural network
+5 out of the last 5 calls to <function TrainingModel.training_start at 0x7f26985efc70> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Done...
+Train mean loss: 3.610068688431056e-07
+Assets written to: results/value_4/assets
+Period 4 took 2.0611640135447185 minutes
+Expected time remaining: 94.81354462305704 minutes
+6 out of the last 6 calls to <function TrainingInitializer.jv_allocation_period at 0x7f2743edde10> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+--------- PERIOD:5/50 ---------
+6 out of the last 6 calls to <function AlphaModel.value_prime_repeated_fn at 0x7f26bc47ca60> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+6 out of the last 6 calls to <function AlphaModel.initialize_optimal_alpha at 0x7f26bc47c3a0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Training alpha
+6 out of the last 6 calls to <function AlphaModel.call at 0x7f26bc47c670> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Done...took: 1.0568539381027222 mins
+Mean abs diff (ppts): [2.5783584  0.43891048 1.7818099  0.38681385 1.6394482 ], Max alpha difference (ppts): [12.107992   2.2824228  6.122917   1.8518292  6.8302336], Mean diff (ppts): [-0.6105701  -0.18542653  1.5721242  -0.24934332 -0.5267867 ], Loss = 457.5684814453125, Total mean abs error: 1.3650676235556602
+Training neural network
+6 out of the last 6 calls to <function TrainingModel.training_start at 0x7f25fcc49750> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Done...
+Train mean loss: 3.0683841600875894e-07
+Assets written to: results/value_5/assets
+Period 5 took 2.0869219581286114 minutes
+Expected time remaining: 93.9114881157875 minutes
+--------- PERIOD:6/50 ---------
+Training alpha
+Done...took: 1.0572295586268108 mins
+Mean abs diff (ppts): [2.6288326  0.5197873  1.838878   0.35615185 1.7069999 ], Max alpha difference (ppts): [11.525595   2.604258   6.0918093  1.922132   6.9224806], Mean diff (ppts): [-0.47720298 -0.22971366  1.6090734  -0.1954118  -0.70675105], Loss = 449.5762939453125, Total mean abs error: 1.4101306907832623
+Training neural network
+Done...
+Train mean loss: 2.9053146022306464e-07
+Assets written to: results/value_6/assets
+Period 6 took 2.079544719060262 minutes
+Expected time remaining: 91.49996763865153 minutes
+--------- PERIOD:7/50 ---------
+Training alpha
+Done...took: 1.0575194756189983 mins
+Mean abs diff (ppts): [2.6373978  0.5288797  1.8754672  0.35363156 1.774499  ], Max alpha difference (ppts): [11.859012   2.690792   6.292498   1.9725218  7.2880926], Mean diff (ppts): [-0.420676   -0.1562494   1.6145908  -0.17495558 -0.86271197], Loss = 441.9132080078125, Total mean abs error: 1.4339743182063103
+Training neural network
+Done...
+Train mean loss: 2.9101065024406125e-07
+Assets written to: results/value_7/assets
+Period 7 took 2.054559826850891 minutes
+Expected time remaining: 88.34607255458832 minutes
+--------- PERIOD:8/50 ---------
+Training alpha
+Done...took: 1.0578039288520813 mins
+Mean abs diff (ppts): [2.4939427  0.53970695 1.7527517  0.37507448 1.7625716 ], Max alpha difference (ppts): [11.3491535  2.820927   6.107937   1.9909396  6.4760027], Mean diff (ppts): [-0.2755239  -0.17781109  1.4965886  -0.19537252 -0.84787977], Loss = 436.1407470703125, Total mean abs error: 1.3848098926246166
+Training neural network
+Done...
+Train mean loss: 2.9286269409567467e-07
+Assets written to: results/value_8/assets
+Period 8 took 2.1222079674402874 minutes
+Expected time remaining: 89.13273463249206 minutes
+--------- PERIOD:9/50 ---------
+Training alpha
+Done...took: 1.0575114647547403 mins
+Mean abs diff (ppts): [2.4502058  0.52099156 1.7684449  0.33717555 1.9407213 ], Max alpha difference (ppts): [11.282146   2.7844727  6.4758034  1.9326687  6.7550955], Mean diff (ppts): [-0.13812423 -0.16183335  1.5009952  -0.11989098 -1.0811493 ], Loss = 429.9123840332031, Total mean abs error: 1.4035066589713097
+Training neural network
+Done...
+Train mean loss: 3.113881348326686e-07
+Assets written to: results/value_9/assets
+Period 9 took 2.087281513214111 minutes
+Expected time remaining: 85.57854204177856 minutes
+--------- PERIOD:10/50 ---------
+Training alpha
+Done...took: 1.0573978503545125 mins
+Mean abs diff (ppts): [2.4710763  0.54453945 1.7378439  0.33434713 2.01575   ], Max alpha difference (ppts): [10.795176   2.718091   6.293726   1.7985195  6.209877 ], Mean diff (ppts): [ 0.15999684 -0.26186967  1.4201502  -0.15722585 -1.1610537 ], Loss = 425.7052307128906, Total mean abs error: 1.420710701495409
+Training neural network
+Done...
+Train mean loss: 3.2682316941645695e-07
+Assets written to: results/value_10/assets
+Period 10 took 2.0479972044626873 minutes
+Expected time remaining: 81.91988817850749 minutes
+--------- PERIOD:11/50 ---------
+Training alpha
+Done...took: 1.0573804378509521 mins
+Mean abs diff (ppts): [2.547651   0.55018866 1.6992027  0.35092378 2.0811706 ], Max alpha difference (ppts): [10.728484   2.6605308  6.5701084  1.6605899  6.597847 ], Mean diff (ppts): [ 0.2891257  -0.23693147  1.3947394  -0.15113766 -1.2957977 ], Loss = 421.56378173828125, Total mean abs error: 1.445828191936016
+Training neural network
+Done...
+Train mean loss: 3.486420609988272e-07
+Assets written to: results/value_11/assets
+Period 11 took 2.033767569065094 minutes
+Expected time remaining: 79.31693519353867 minutes
+--------- PERIOD:12/50 ---------
+Training alpha
+Done...took: 1.0575904766718547 mins
+Mean abs diff (ppts): [2.5557387  0.5576944  1.7480046  0.32859057 2.0834048 ], Max alpha difference (ppts): [11.444771   2.6977897  7.435173   1.7697289  6.3735394], Mean diff (ppts): [ 0.06317505 -0.17320526  1.4746392  -0.13237023 -1.2322435 ], Loss = 414.4266052246094, Total mean abs error: 1.4546873979270458
+Training neural network
+Done...
+Train mean loss: 3.4445585583853244e-07
+Assets written to: results/value_12/assets
+Period 12 took 2.0703769524892173 minutes
+Expected time remaining: 78.67432419459026 minutes
+--------- PERIOD:13/50 ---------
+Training alpha
+Done...took: 1.057600196202596 mins
+Mean abs diff (ppts): [2.6805022  0.52923214 1.8073846  0.37879926 2.140492  ], Max alpha difference (ppts): [12.347817   2.2863388  7.8495026  1.9747585  7.1097703], Mean diff (ppts): [ 0.09072222 -0.08731875  1.5316963  -0.21757302 -1.317527  ], Loss = 407.1632385253906, Total mean abs error: 1.5072813257575035
+Training neural network
+Done...
+Train mean loss: 3.7134512353986793e-07
+Assets written to: results/value_13/assets
+Period 13 took 2.04444850285848 minutes
+Expected time remaining: 75.64459460576376 minutes
+--------- PERIOD:14/50 ---------
+Training alpha
+Done...took: 1.0577489058176677 mins
+Mean abs diff (ppts): [2.6368384  0.52262557 1.7500603  0.3698297  2.0137055 ], Max alpha difference (ppts): [11.612391   2.3514986  7.9900146  2.0220876  6.670459 ], Mean diff (ppts): [-0.13338123 -0.00734265  1.4658755  -0.14228748 -1.1828659 ], Loss = 402.9126892089844, Total mean abs error: 1.458612084388733
+Training neural network
+Done...
+Train mean loss: 3.8761510268159327e-07
+Assets written to: results/value_14/assets
+Period 14 took 2.096201014518738 minutes
+Expected time remaining: 75.46323652267456 minutes
+--------- PERIOD:15/50 ---------
+Training alpha
+Done...took: 1.0579187234242757 mins
+Mean abs diff (ppts): [2.6010184  0.5336472  1.8134439  0.43703452 1.9128803 ], Max alpha difference (ppts): [11.926037   2.8851435  8.049202   2.5462403  7.623166 ], Mean diff (ppts): [-0.2910675  -0.04115389  1.513718   -0.12854062 -1.0529594 ], Loss = 400.5393981933594, Total mean abs error: 1.459606271237135
+Training neural network
+Done...
+Train mean loss: 3.967157056194992e-07
+Assets written to: results/value_15/assets
+Period 15 took 2.052139337857564 minutes
+Expected time remaining: 71.82487682501475 minutes
+--------- PERIOD:16/50 ---------
+Training alpha
+Done...took: 1.0575953642527263 mins
+Mean abs diff (ppts): [2.6368482 0.5377741 1.8109215 0.4461209 2.0141528], Max alpha difference (ppts): [11.49932    2.893871   8.09879    2.40217    7.8831196], Mean diff (ppts): [-0.17727143  0.06129336  1.4620856  -0.0944761  -1.2516379 ], Loss = 394.1922607421875, Total mean abs error: 1.4891618862748146
+Training neural network
+Done...
+Train mean loss: 4.0044074012257624e-07
+Assets written to: results/value_16/assets
+Period 16 took 2.0380327224731447 minutes
+Expected time remaining: 69.29311256408691 minutes
+--------- PERIOD:17/50 ---------
+Training alpha
+Done...took: 1.057545038064321 mins
+Mean abs diff (ppts): [2.663203   0.5513835  1.8236494  0.48814607 2.0160062 ], Max alpha difference (ppts): [12.316477   3.0310736  8.371094   2.6578784  7.762432 ], Mean diff (ppts): [-0.22592941  0.04589603  1.5300382  -0.1153698  -1.2346369 ], Loss = 387.8481140136719, Total mean abs error: 1.508477609604597
+Training neural network
+Done...
+Train mean loss: 4.152688859448972e-07
+Assets written to: results/value_17/assets
+Period 17 took 2.0478087186813356 minutes
+Expected time remaining: 67.57768771648406 minutes
+--------- PERIOD:18/50 ---------
+Training alpha
+Done...took: 1.0577059388160706 mins
+Mean abs diff (ppts): [2.7256393 0.5687033 1.7554047 0.5165249 1.8993171], Max alpha difference (ppts): [12.285972   3.1256542  7.6913567  2.740807   8.060509 ], Mean diff (ppts): [-0.5424062   0.1195548   1.4008445  -0.10176146 -0.8762326 ], Loss = 383.9733581542969, Total mean abs error: 1.4931173995137215
+Training neural network
+Done...
+Train mean loss: 4.229885632867081e-07
+Assets written to: results/value_18/assets
+Period 18 took 2.048168933391571 minutes
+Expected time remaining: 65.54140586853028 minutes
+--------- PERIOD:19/50 ---------
+Training alpha
+Done...took: 1.0575551311175029 mins
+Mean abs diff (ppts): [2.7761345  0.58202136 1.7503914  0.5296276  1.9272121 ], Max alpha difference (ppts): [12.375021   3.2328188  8.225909   3.029342   8.017122 ], Mean diff (ppts): [-0.47678068  0.07795493  1.3721942  -0.14204457 -0.83132565], Loss = 378.2433166503906, Total mean abs error: 1.5130762942135334
+Training neural network
+Done...
+Train mean loss: 4.303574314690195e-07
+Assets written to: results/value_19/assets
+Period 19 took 2.047708574930827 minutes
+Expected time remaining: 63.478965822855635 minutes
+--------- PERIOD:20/50 ---------
+Training alpha
+Done...took: 1.0580493887265523 mins
+Mean abs diff (ppts): [2.825034   0.627295   1.7888701  0.51949155 1.997193  ], Max alpha difference (ppts): [12.790716   3.3905134  8.212384   2.8520777  8.2528   ], Mean diff (ppts): [-0.5693411   0.17332123  1.4256754  -0.14072885 -0.8889278 ], Loss = 371.353271484375, Total mean abs error: 1.5515769831836224
+Training neural network
+Done...
+Train mean loss: 4.264441599843849e-07
+Assets written to: results/value_20/assets
+Period 20 took 2.0557265400886537 minutes
+Expected time remaining: 61.67179620265961 minutes
+--------- PERIOD:21/50 ---------
+Training alpha
+Done...took: 1.0582688649495442 mins
+Mean abs diff (ppts): [2.818459  0.6384878 1.8825623 0.5107637 2.015168 ], Max alpha difference (ppts): [13.212951  3.504202  8.225742  3.170404  8.716184], Mean diff (ppts): [-0.54284286  0.17851993  1.4731095  -0.03254355 -1.0762427 ], Loss = 368.0998840332031, Total mean abs error: 1.5730883926153183
+Training neural network
+Done...
+Train mean loss: 4.2569993752294977e-07
+Assets written to: results/value_21/assets
+Period 21 took 2.053878394762675 minutes
+Expected time remaining: 59.56247344811757 minutes
+--------- PERIOD:22/50 ---------
+Training alpha
+Done...took: 1.0585086901982625 mins
+Mean abs diff (ppts): [2.8244176  0.6339454  1.8208619  0.48557627 1.9583352 ], Max alpha difference (ppts): [13.070692  3.42018   8.621725  2.922146  8.692217], Mean diff (ppts): [-0.49645296  0.10211078  1.3726742  -0.02633127 -0.95200336], Loss = 364.68994140625, Total mean abs error: 1.544628106057644
+Training neural network
+Done...
+Train mean loss: 4.1398760686206515e-07
+Assets written to: results/value_22/assets
+Period 22 took 2.0908682703971864 minutes
+Expected time remaining: 58.54431157112121 minutes
+--------- PERIOD:23/50 ---------
+Training alpha
+Done...took: 1.057743529478709 mins
+Mean abs diff (ppts): [2.9030063  0.63512844 1.8685586  0.4903084  2.0784097 ], Max alpha difference (ppts): [14.076209   3.3254578  8.444667   3.1244025  8.111959 ], Mean diff (ppts): [-0.3860473   0.19042522  1.4210536  -0.06853274 -1.1569029 ], Loss = 360.46185302734375, Total mean abs error: 1.595083437860012
+Training neural network
+Done...
+Train mean loss: 4.189188018699497e-07
+Assets written to: results/value_23/assets
+Period 23 took 2.079598518212636 minutes
+Expected time remaining: 56.14915999174118 minutes
+--------- PERIOD:24/50 ---------
+Training alpha
+Done...took: 1.0581713954607646 mins
+Mean abs diff (ppts): [3.0236998  0.66604733 1.8776168  0.50348777 2.1092682 ], Max alpha difference (ppts): [15.103841   3.4130363  8.730626   3.0379996  7.9615235], Mean diff (ppts): [-0.3254459   0.24699284  1.336347   -0.10712548 -1.1507692 ], Loss = 356.1335754394531, Total mean abs error: 1.6360234469175339
+Training neural network
+Done...
+Train mean loss: 4.2774161101988284e-07
+Assets written to: results/value_24/assets
+Period 24 took 2.0498364647229512 minutes
+Expected time remaining: 53.295748082796734 minutes
+--------- PERIOD:25/50 ---------
+Training alpha
+Done...took: 1.0579552849133809 mins
+Mean abs diff (ppts): [3.087141   0.66646624 1.9026915  0.49590442 2.0996225 ], Max alpha difference (ppts): [15.826869   3.2475278  8.739739   3.143318   8.792109 ], Mean diff (ppts): [-0.5306438   0.27155423  1.3756925  -0.09096422 -1.0256426 ], Loss = 351.37860107421875, Total mean abs error: 1.6503648832440376
+Training neural network
+Done...
+Train mean loss: 4.225218503961514e-07
+Assets written to: results/value_25/assets
+Period 25 took 2.1240007678667703 minutes
+Expected time remaining: 53.10001919666926 minutes
+--------- PERIOD:26/50 ---------
+Training alpha
+Done...took: 1.0577836592992147 mins
+Mean abs diff (ppts): [3.1112833  0.6798224  1.8789517  0.53804845 2.217606  ], Max alpha difference (ppts): [15.175522   3.4391403  8.256581   3.3977003  8.331746 ], Mean diff (ppts): [-0.39799017  0.32216746  1.4248691  -0.1918728  -1.1571774 ], Loss = 347.69671630859375, Total mean abs error: 1.6851425170898438
+Training neural network
+Done...
+Train mean loss: 4.0653358723830024e-07
+Assets written to: results/value_26/assets
+Period 26 took 2.075446410973867 minutes
+Expected time remaining: 49.810713863372804 minutes
+--------- PERIOD:27/50 ---------
+Training alpha
+Done...took: 1.057802931467692 mins
+Mean abs diff (ppts): [3.2157588 0.7209108 1.8336264 0.5366951 2.1931007], Max alpha difference (ppts): [16.20599    3.654787   8.5151615  3.4555972  8.420944 ], Mean diff (ppts): [-0.1379322   0.30447438  1.2438333  -0.23234618 -1.1780314 ], Loss = 344.1866760253906, Total mean abs error: 1.7000189051032066
+Training neural network
+Done...
+Train mean loss: 4.130720014927647e-07
+Assets written to: results/value_27/assets
+Period 27 took 2.060707195599874 minutes
+Expected time remaining: 47.3962654987971 minutes
+--------- PERIOD:28/50 ---------
+Training alpha
+Done...took: 1.0583181381225586 mins
+Mean abs diff (ppts): [3.2164943  0.6842612  1.8608236  0.49566022 2.2276294 ], Max alpha difference (ppts): [15.959454   3.3144891  8.438715   3.2874675  8.599835 ], Mean diff (ppts): [ 0.07194108  0.26445597  1.2131215  -0.25858164 -1.2909414 ], Loss = 337.9255065917969, Total mean abs error: 1.6969721764326096
+Training neural network
+Done...
+Train mean loss: 4.1633248315520177e-07
+Assets written to: results/value_28/assets
+Period 28 took 2.0658873001734417 minutes
+Expected time remaining: 45.449520603815714 minutes
+--------- PERIOD:29/50 ---------
+Training alpha
+Done...took: 1.0577175935109457 mins
+Mean abs diff (ppts): [3.2951581  0.6863823  1.8787034  0.52062476 2.3552704 ], Max alpha difference (ppts): [15.099168   3.4467697  7.9939604  3.3175826  8.551129 ], Mean diff (ppts): [ 0.04069659  0.30031636  1.2293452  -0.14028974 -1.4300725 ], Loss = 333.8319396972656, Total mean abs error: 1.7472285777330399
+Training neural network
+Done...
+Train mean loss: 4.270972056019673e-07
+Assets written to: results/value_29/assets
+Period 29 took 2.065478293100993 minutes
+Expected time remaining: 43.37504415512085 minutes
+--------- PERIOD:30/50 ---------
+Training alpha
+Done...took: 1.0576010704040528 mins
+Mean abs diff (ppts): [3.3177707 0.6868311 1.8460932 0.5255165 2.2758257], Max alpha difference (ppts): [17.423964   3.6872387  7.566157   3.2735438  9.327162 ], Mean diff (ppts): [-0.04184753  0.31982127  1.0973295  -0.0928653  -1.2824438 ], Loss = 331.541015625, Total mean abs error: 1.7304079607129097
+Training neural network
+Done...
+Train mean loss: 4.4697628709400306e-07
+Assets written to: results/value_30/assets
+Period 30 took 2.1039960265159605 minutes
+Expected time remaining: 42.079920530319214 minutes
+--------- PERIOD:31/50 ---------
+Training alpha
+Done...took: 1.0575268546740213 mins
+Mean abs diff (ppts): [3.3236995 0.7010714 1.7428426 0.5067485 2.2384436], Max alpha difference (ppts): [17.401241   3.7034452  7.49079    3.1753898  9.747749 ], Mean diff (ppts): [-0.0849569   0.31681857  1.0057603  -0.08956198 -1.1480613 ], Loss = 328.8196716308594, Total mean abs error: 1.7025617882609367
+Training neural network
+Done...
+Train mean loss: 4.5737445475424465e-07
+Assets written to: results/value_31/assets
+Period 31 took 2.0502237995465595 minutes
+Expected time remaining: 38.95425219138463 minutes
+--------- PERIOD:32/50 ---------
+Training alpha
+Done...took: 1.0577294468879699 mins
+Mean abs diff (ppts): [3.4151726  0.68217736 1.8072741  0.5392926  2.2636096 ], Max alpha difference (ppts): [17.838455   3.5551667  8.07125    3.5644605 10.030472 ], Mean diff (ppts): [-0.0450622   0.30014294  1.0481006  -0.18953104 -1.1136547 ], Loss = 326.5185546875, Total mean abs error: 1.7415039241313934
+Training neural network
+Done...
+Train mean loss: 4.5853479946345033e-07
+Assets written to: results/value_32/assets
+Period 32 took 2.0496178388595583 minutes
+Expected time remaining: 36.89312109947205 minutes
+--------- PERIOD:33/50 ---------
+Training alpha
+Done...took: 1.0573594689369201 mins
+Mean abs diff (ppts): [3.3953998  0.68134195 1.8222775  0.53310484 2.2647843 ], Max alpha difference (ppts): [16.782833   3.2694638  7.6927156  3.55787    8.791351 ], Mean diff (ppts): [-0.07432023  0.37138662  1.0574346  -0.15279664 -1.2017064 ], Loss = 321.5973815917969, Total mean abs error: 1.7393825575709343
+Training neural network
+Done...
+Train mean loss: 4.4444803393162147e-07
+Assets written to: results/value_33/assets
+Period 33 took 2.0523911436398823 minutes
+Expected time remaining: 34.890649441878004 minutes
+--------- PERIOD:34/50 ---------
+Training alpha
+Done...took: 1.057961062590281 mins
+Mean abs diff (ppts): [3.3853817  0.6872326  1.8061545  0.53661734 2.2744968 ], Max alpha difference (ppts): [17.647171   3.5560489  7.721999   3.456819   9.655619 ], Mean diff (ppts): [-0.34789196  0.33128303  1.0661881   0.06577107 -1.1153512 ], Loss = 318.37451171875, Total mean abs error: 1.7379757016897202
+Training neural network
+Done...
+Train mean loss: 4.726499867047096e-07
+Assets written to: results/value_34/assets
+Period 34 took 2.0553340911865234 minutes
+Expected time remaining: 32.885345458984375 minutes
+--------- PERIOD:35/50 ---------
+Training alpha
+Done...took: 1.0584649244944255 mins
+Mean abs diff (ppts): [3.4913626 0.6693056 1.8711548 0.5861288 2.3078263], Max alpha difference (ppts): [19.169092   3.2315135  7.979703   3.66764   10.407698 ], Mean diff (ppts): [-2.6623848e-01  2.3482102e-01  1.1461172e+00 -1.0705702e-03
+ -1.1136338e+00], Loss = 315.6155700683594, Total mean abs error: 1.785154640674591
+Training neural network
+Done...
+Train mean loss: 4.589459194903611e-07
+Assets written to: results/value_35/assets
+Period 35 took 2.129295651117961 minutes
+Expected time remaining: 31.93943476676941 minutes
+--------- PERIOD:36/50 ---------
+Training alpha
+Done...took: 1.0588728070259095 mins
+Mean abs diff (ppts): [3.6200562  0.67858595 1.9956207  0.53593016 2.309715  ], Max alpha difference (ppts): [18.521809   3.2204032  8.422536   3.6625273 10.227966 ], Mean diff (ppts): [-0.29435396  0.26406646  1.2428569  -0.18652219 -1.0260488 ], Loss = 313.7356872558594, Total mean abs error: 1.8279824405908585
+Training neural network
+Done...
+Train mean loss: 4.639944677364838e-07
+Assets written to: results/value_36/assets
+Period 36 took 2.0606035391489663 minutes
+Expected time remaining: 28.84844954808553 minutes
+--------- PERIOD:37/50 ---------
+Training alpha
+Done...took: 1.0581891457239787 mins
+Mean abs diff (ppts): [3.6756475  0.67642003 1.9849598  0.5397838  2.286355  ], Max alpha difference (ppts): [19.481968   3.4129977  7.9981747  3.6387584 10.816794 ], Mean diff (ppts): [-0.20975985  0.11997336  1.1547198  -0.08460729 -0.98032814], Loss = 311.89404296875, Total mean abs error: 1.8326327204704285
+Training neural network
+Done...
+Train mean loss: 4.837414735447965e-07
+Assets written to: results/value_37/assets
+Period 37 took 2.0501305222511292 minutes
+Expected time remaining: 26.65169678926468 minutes
+--------- PERIOD:38/50 ---------
+Training alpha
+Done...took: 1.0581092754999797 mins
+Mean abs diff (ppts): [3.778288   0.69987106 1.8794616  0.5626209  2.3847687 ], Max alpha difference (ppts): [19.95778    3.5085201  8.165267   3.7991412 10.877073 ], Mean diff (ppts): [-0.00458094  0.11984745  0.871651   -0.01024909 -0.9766735 ], Loss = 309.9637145996094, Total mean abs error: 1.8610000610351562
+Training neural network
+Done...
+Train mean loss: 5.030012175666343e-07
+Assets written to: results/value_38/assets
+Period 38 took 2.0533582091331484 minutes
+Expected time remaining: 24.640298509597777 minutes
+--------- PERIOD:39/50 ---------
+Training alpha
+Done...took: 1.0576815406481426 mins
+Mean abs diff (ppts): [3.8204036 0.774758  1.9338486 0.6201005 2.2337143], Max alpha difference (ppts): [21.551228   3.990984   8.194983   3.9458253 12.025457 ], Mean diff (ppts): [-0.54430866  0.13526377  1.0139239  -0.00291581 -0.6019655 ], Loss = 310.0684814453125, Total mean abs error: 1.876564882695675
+Training neural network
+Done...
+Train mean loss: 5.171574457563111e-07
+Assets written to: results/value_39/assets
+Period 39 took 2.1052411595980325 minutes
+Expected time remaining: 23.157652755578358 minutes
+--------- PERIOD:40/50 ---------
+Training alpha
+Done...took: 1.057889755566915 mins
+Mean abs diff (ppts): [3.8980455  0.744575   1.9668663  0.58652467 2.3257241 ], Max alpha difference (ppts): [21.129227   3.9994955  8.544996   3.8385549 11.7782   ], Mean diff (ppts): [-0.44659403  0.16785122  1.0481356  -0.09658337 -0.67281306], Loss = 308.1131591796875, Total mean abs error: 1.9043464213609695
+Training neural network
+Done...
+Train mean loss: 5.271563736641838e-07
+Assets written to: results/value_40/assets
+Period 40 took 2.094923532009125 minutes
+Expected time remaining: 20.949235320091248 minutes
+--------- PERIOD:41/50 ---------
+Training alpha
+Done...took: 1.057442013422648 mins
+Mean abs diff (ppts): [3.8857534 0.7242822 1.9401386 0.5649093 2.3648899], Max alpha difference (ppts): [21.103405   3.7835002  8.402549   3.4470148 12.3245   ], Mean diff (ppts): [-0.4953568   0.14203072  0.996938    0.00315965 -0.6467725 ], Loss = 305.96673583984375, Total mean abs error: 1.895994320511818
+Training neural network
+Done...
+Train mean loss: 5.210176823311485e-07
+Assets written to: results/value_41/assets
+Period 41 took 2.0592990159988402 minutes
+Expected time remaining: 18.533691143989564 minutes
+--------- PERIOD:42/50 ---------
+Training alpha
+Done...took: 1.0578397830327353 mins
+Mean abs diff (ppts): [4.0150313 0.738894  1.9230468 0.629531  2.4975705], Max alpha difference (ppts): [20.921135   4.1603208  8.87799    3.7514017 13.116527 ], Mean diff (ppts): [-0.26703534  0.21595095  0.9122573  -0.08966453 -0.7715105 ], Loss = 305.05224609375, Total mean abs error: 1.960817165672779
+Training neural network
+Done...
+Train mean loss: 5.43281203135848e-07
+Assets written to: results/value_42/assets
+Period 42 took 2.053599504629771 minutes
+Expected time remaining: 16.42879603703817 minutes
+--------- PERIOD:43/50 ---------
+Training alpha
+Done...took: 1.0588373343149822 mins
+Mean abs diff (ppts): [4.0464983  0.78751457 1.9327693  0.6030715  2.4607296 ], Max alpha difference (ppts): [21.347094   4.1878223  8.599596   3.4529724 13.614946 ], Mean diff (ppts): [-0.49301177  0.25766197  0.87984085 -0.05807499 -0.5864176 ], Loss = 305.1139831542969, Total mean abs error: 1.9661175087094307
+Training neural network
+Done...
+Train mean loss: 5.560669933402096e-07
+Assets written to: results/value_43/assets
+Period 43 took 2.090648527940114 minutes
+Expected time remaining: 14.6345396955808 minutes
+--------- PERIOD:44/50 ---------
+Training alpha
+Done...took: 1.0573265115420023 mins
+Mean abs diff (ppts): [4.032221   0.78661937 1.9032893  0.68928033 2.452215  ], Max alpha difference (ppts): [21.063274   3.9803982  9.085629   3.5936556 14.138389 ], Mean diff (ppts): [-0.24502261  0.23110262  0.6824297  -0.10216565 -0.5663459 ], Loss = 304.3509521484375, Total mean abs error: 1.972724311053753
+Training neural network
+Done...
+Train mean loss: 5.67277709251357e-07
+Assets written to: results/value_44/assets
+Period 44 took 2.075365149974823 minutes
+Expected time remaining: 12.452190899848938 minutes
+--------- PERIOD:45/50 ---------
+Training alpha
+Done...took: 1.057123855749766 mins
+Mean abs diff (ppts): [4.0544233  0.81666696 1.9443284  0.67572266 2.415859  ], Max alpha difference (ppts): [21.53573    4.100561   9.150508   3.6273077 14.802683 ], Mean diff (ppts): [-0.49086478  0.25167856  0.7387291  -0.10698343 -0.39255983], Loss = 303.3148498535156, Total mean abs error: 1.9814016297459602
+Training neural network
+Done...
+Train mean loss: 5.960665134807641e-07
+Assets written to: results/value_45/assets
+Period 45 took 2.0645953098932903 minutes
+Expected time remaining: 10.322976549466452 minutes
+--------- PERIOD:46/50 ---------
+Training alpha
+Done...took: 1.0574886242548625 mins
+Mean abs diff (ppts): [4.0752587 0.8661487 1.9395735 0.7386097 2.4708567], Max alpha difference (ppts): [22.522867  4.36666   8.934471  3.728603 15.164322], Mean diff (ppts): [-0.3385123   0.37137243  0.5898523  -0.16049938 -0.4622145 ], Loss = 301.4792175292969, Total mean abs error: 2.018091268837452
+Training neural network
+Done...
+Train mean loss: 5.848758064530557e-07
+Assets written to: results/value_46/assets
+Period 46 took 2.1000495195388793 minutes
+Expected time remaining: 8.400198078155517 minutes
+--------- PERIOD:47/50 ---------
+Training alpha
+Done...took: 1.0625171025594076 mins
+Mean abs diff (ppts): [4.048643   0.85135436 1.9497398  0.69868726 2.5633128 ], Max alpha difference (ppts): [24.850828   4.1586876  8.820701   3.5692534 15.750247 ], Mean diff (ppts): [-0.374505    0.30542028  0.6669899  -0.08149611 -0.51641226], Loss = 300.6372985839844, Total mean abs error: 2.0223475992679596
+Training neural network
+Done...
+Train mean loss: 6.194236448209267e-07
+Assets written to: results/value_47/assets
+Period 47 took 2.0614105025927225 minutes
+Expected time remaining: 6.1842315077781675 minutes
+--------- PERIOD:48/50 ---------
+Training alpha
+Done...took: 1.0593828916549684 mins
+Mean abs diff (ppts): [4.1799197  0.8673489  1.9686749  0.73030454 2.5996535 ], Max alpha difference (ppts): [26.521915   4.0484548  9.2596     3.755292  16.67692  ], Mean diff (ppts): [-0.27423707  0.29295677  0.54344904 -0.13501357 -0.42715684], Loss = 299.3241271972656, Total mean abs error: 2.0691798999905586
+Training neural network
+Done...
+Train mean loss: 6.346970735648938e-07
+Assets written to: results/value_48/assets
+Period 48 took 2.0578110734621684 minutes
+Expected time remaining: 4.115622146924337 minutes
+--------- PERIOD:49/50 ---------
+Training alpha
+Done...took: 1.0581035335858664 mins
+Mean abs diff (ppts): [4.19764    0.92442167 2.0013943  0.76062363 2.6410894 ], Max alpha difference (ppts): [26.925581   4.37392    9.688252   3.5491154 17.746925 ], Mean diff (ppts): [-0.21150753  0.3059717   0.48691994 -0.02121696 -0.5601688 ], Loss = 297.8030700683594, Total mean abs error: 2.105032280087471
+Training neural network
+Done...
+Train mean loss: 6.390097269104444e-07
+Assets written to: results/value_49/assets
+Period 49 took 2.0618125120798747 minutes
+Expected time remaining: 2.0618125120798747 minutes
+Training complete
+Date and Time of Run: 13/07/2023 19:01:46
+Date check failed. Last business day:2023-06-14 00:00:00, data date: 2023-06-26 00:00:00
