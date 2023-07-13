@@ -35,7 +35,7 @@ class TrainingModel(K.Sequential):
             # Output layer
             self.add(K.layers.Dense(args.model_output_size, bias_initializer=K.initializers.Constant(value=args.initial_guess), activation=args.activation_function_output))
 
-    def train(self, train_data, number_epochs,log):
+    def train(self, train_data, number_epochs):
         losses_primes = []
         weights = self.trainable_variables
 
