@@ -45,8 +45,6 @@ class TrainingModel(K.Sequential):
         for _ in trange(number_epochs):
             mean_loss_prime = self.training_step(train_data)
             losses_primes.append(mean_loss_prime)
-
-        log.info(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
         return losses_primes
 
     @tf.function(reduce_retracing=True)

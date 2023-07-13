@@ -86,7 +86,8 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
     log.info('Training neural network')
 
     model.compile(optimizer=model.optimizer, loss='mse')
-    losses = model.train(data, args.num_epochs,log)
+    losses = model.train(data, args.num_epochs)
+    log.info(f'Done...\nTrain mean loss: {np.mean(np.array(losses)[-2000:])}')
 
     if args.plot_toggle==1:
         plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
@@ -101,11 +102,10 @@ def train_model(args: Namespace):
     # --- Settings ---
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
-    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, _, SIGMA_COMPANION, _, NUM_PERIODS = SETTINGS
+    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, PHI_0, PHI_1, _, SIGMA_COMPANION, _, NUM_PERIODS, _, _ = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
 
     A0,A1 = jurek_viceira.compute_JV_matrices(PHI_0,PHI_1,SIGMA_COMPANION,MARS_FILE["settings"])
-
 
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
     log = utils.create_logger(args.logs_dir, 'training')
