@@ -1,0 +1,72 @@
+Date and Time of Run: 13/07/2023 16:27:53
+Device: /GPU:0
+Number of Samples: 4096
+Batch Size:: 1024
+Epsilon Shape:: [4096 1024   15]
+Prime Array Shape:: [4194304     165]
+Prime Repeated Shape:: [4096 1024    1]
+Alpha bounds:: sum-to-1
+_____ Optimization settings ______
+learning_rate_alpha: 0.001
+decay_steps_alpha: 625
+decay_rate_alpha: 0.5
+iter_per_epoch: 50
+num_epochs_alpha: 50
+alpha_constraint: sum-to-1
+_____ NeuralNet settings ______
+learning_rate: 0.0001
+decay_steps: 25000
+decay_rate: 0.5
+num_hidden_layers: 2
+num_neurons: 32
+activation_function: elu
+activation_function_output: linear
+--------------------- EXECUTING MODEL ---------------------
+--------- PERIOD:0/50 ---------
+Training alpha
+Done...took: 0.9891582131385803 mins
+Mean abs diff (ppts): [2.0021813  0.24932073 1.7151375  0.26446375 1.0468166 ], Max alpha difference (ppts): [8.692831  1.1733592 4.7747283 1.2293547 4.4195414], Mean diff (ppts): [-1.3622534  -0.06471036  1.7043959  -0.2040835  -0.0733513 ], Loss = 502.26019287109375, Total mean abs error: 1.055583916604519
+Training neural network
+Done...
+Train mean loss: 1.500032681178709e-06
+Assets written to: results_seed123/value_0/assets
+--------- PERIOD:1/50 ---------
+Training alpha
+Done...took: 1.054887346426646 mins
+Mean abs diff (ppts): [2.485137   0.31547964 1.8473474  0.34986517 1.3631934 ], Max alpha difference (ppts): [11.41963    1.464206   6.1193495  1.5683293  6.150627 ], Mean diff (ppts): [-1.4392948  -0.14111695  1.8137014  -0.28804803  0.05475593], Loss = 489.9931945800781, Total mean abs error: 1.2722045183181763
+Training neural network
+Done...
+Train mean loss: 7.774267487548059e-07
+Assets written to: results_seed123/value_1/assets
+Period 1 took 2.037087329228719 minutes
+Expected time remaining: 99.81727913220723 minutes
+--------- PERIOD:2/50 ---------
+Training alpha
+Done...took: 1.0564023693402609 mins
+Mean abs diff (ppts): [2.595602   0.31890404 1.8591497  0.3919873  1.4775921 ], Max alpha difference (ppts): [11.990333   1.5521228  5.895609   1.7330326  7.0415316], Mean diff (ppts): [-1.2363075  -0.15543722  1.732029   -0.32444888 -0.01583358], Loss = 480.5931396484375, Total mean abs error: 1.3286476954817772
+Training neural network
+Done...
+Train mean loss: 5.537648348763469e-07
+Assets written to: results_seed123/value_2/assets
+Period 2 took 2.033194104830424 minutes
+Expected time remaining: 97.59331703186035 minutes
+--------- PERIOD:3/50 ---------
+Training alpha
+Done...took: 1.057730213801066 mins
+Mean abs diff (ppts): [2.5359652  0.36152527 1.8389418  0.40317568 1.5433935 ], Max alpha difference (ppts): [11.834002   1.8737614  5.7959137  1.7811567  6.4604225], Mean diff (ppts): [-0.95810324 -0.15556347  1.6957074  -0.3474997  -0.23454118], Loss = 471.5558776855469, Total mean abs error: 1.3366001658141613
+Training neural network
+Done...
+Train mean loss: 4.476503931982734e-07
+Assets written to: results_seed123/value_3/assets
+Period 3 took 2.053989068667094 minutes
+Expected time remaining: 96.53748622735341 minutes
+5 out of the last 5 calls to <function TrainingInitializer.jv_allocation_period at 0x7f00b7801e10> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+--------- PERIOD:4/50 ---------
+5 out of the last 5 calls to <function AlphaModel.value_prime_repeated_fn at 0x7eff8040b520> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+5 out of the last 5 calls to <function AlphaModel.initialize_optimal_alpha at 0x7eff80409cf0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Training alpha
+5 out of the last 5 calls to <function AlphaModel.call at 0x7eff80408f70> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+Done...took: 1.0570371349652607 mins
+Mean abs diff (ppts): [2.5005753  0.39793387 1.7585119  0.40306082 1.6128758 ], Max alpha difference (ppts): [12.271631   2.0750463  5.852735   1.8320985  6.9304824], Mean diff (ppts): [-0.61795217 -0.18180738  1.5990952  -0.32825047 -0.47108793], Loss = 464.15838623046875, Total mean abs error: 1.334591768682003
+Training neural network
+5 out of the last 5 calls to <function TrainingModel.training_start at 0x7f00285f3d00> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
