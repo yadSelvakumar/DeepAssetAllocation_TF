@@ -35,7 +35,7 @@ class TrainingModel(K.Sequential):
             # Output layer
             self.add(K.layers.Dense(args.model_output_size, bias_initializer=K.initializers.Constant(value=args.initial_guess), activation=args.activation_function_output))
 
-    def train(self, train_data, number_epochs):
+    def train(self, train_data, number_epochs,log):
         losses_primes = []
         weights = self.trainable_variables
 
@@ -46,7 +46,7 @@ class TrainingModel(K.Sequential):
             mean_loss_prime = self.training_step(train_data)
             losses_primes.append(mean_loss_prime)
 
-        print(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
+        log.info(f'Done...\nTrain mean loss: {np.mean(np.array(losses_primes)[-2000:])}')
         return losses_primes
 
     @tf.function(reduce_retracing=True)

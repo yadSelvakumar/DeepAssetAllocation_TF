@@ -25,8 +25,8 @@ def main_full_model(setting_file):
     parser.add_argument('--activation_function_output', type=str, choices=['tanh', 'relu', 'linear'], default='linear', help='activation function for output layer')
     parser.add_argument('--initial_guess', type=float, default=1, help='initial guess for model')
 
-    parser.add_argument('--results_dir', type=str, default='results', help='directory for results')
-    parser.add_argument('--figures_dir', type=str, default='figures', help='directory for figures')
+    parser.add_argument('--results_dir', type=str, default='results_seed123', help='directory for results')
+    parser.add_argument('--figures_dir', type=str, default='figures_seed123', help='directory for figures')
     parser.add_argument('--results_dir_save', type=str, default='results_save', help='directory for results to save')
     parser.add_argument('--figures_dir_save', type=str, default='figures_save', help='directory for figures to save')
     parser.add_argument('--logs_dir', type=str, default='logs', help='directory for logs')

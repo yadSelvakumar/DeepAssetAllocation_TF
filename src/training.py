@@ -1,6 +1,7 @@
 from src.alpha_model import AlphaModel
 from src.training_initializer import TrainingInitializer
 from src.training_model import TrainingModel
+from src import jurek_viceira
 from matplotlib import pyplot as plt
 from tensorflow import keras as K
 from argparse import Namespace
@@ -26,7 +27,7 @@ def plot_loss(losses, title, filepath):
 
 
 def train_period_model(period, log: Logger, args: Namespace, prime_function: Callable, alpha_JV: tf.Tensor, initial_alpha: tf.Tensor, alpha_model: AlphaModel, simulated_states: tf.Tensor, num_states: int, alpha_decay_steps: int, model_decay_steps: int, num_periods: int, weights: list[tf.Tensor]):
-    log.info(f'Initializing alpha optimizer\nPERIOD:{period}/{num_periods}')
+    log.info(f'--------- PERIOD:{period}/{num_periods} ---------')
 
     NUM_SAMPLES = args.num_samples
     tf.config.optimizer.set_experimental_options({'auto_mixed_precision': True})
@@ -79,15 +80,13 @@ def train_period_model(period, log: Logger, args: Namespace, prime_function: Cal
 
     # ------------------------------------------------
 
-    log.info('Initializing neural network')
-
     lr_optim_model = K.optimizers.schedules.ExponentialDecay(args.learning_rate, model_decay_steps, args.decay_rate, staircase=True)
     model = TrainingModel(weights, args, num_states, lr_optim_model)
 
     log.info('Training neural network')
 
     model.compile(optimizer=model.optimizer, loss='mse')
-    losses = model.train(data, args.num_epochs)
+    losses = model.train(data, args.num_epochs,log)
 
     if args.plot_toggle==1:
         plot_loss(losses[-20000:], f'Optim loss, period {period}', f'{args.figures_dir}/NN_losses_period_{period}.png')
@@ -102,8 +101,11 @@ def train_model(args: Namespace):
     # --- Settings ---
     MARS_FILE = loadmat(args.settings_file)
     SETTINGS = utils.unpack_mars_settings(MARS_FILE)
-    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, A0, A1, PHI_0, PHI_1, _, _, NUM_PERIODS = SETTINGS
+    GAMMA, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, _, SIGMA_COMPANION, _, NUM_PERIODS = SETTINGS
     COVARIANCE_MATRIX, UNCONDITIONAL_MEAN, *_ = utils.get_model_settings(SETTINGS, MARS_FILE)
+
+    A0,A1 = jurek_viceira.compute_JV_matrices(PHI_0,PHI_1,SIGMA_COMPANION,MARS_FILE["settings"])
+
 
     utils.create_dir_if_missing(args.logs_dir, args.figures_dir, args.results_dir)
     log = utils.create_logger(args.logs_dir, 'training')
@@ -122,18 +124,17 @@ def train_model(args: Namespace):
     PRIME_REPEATED_SHAPE = set_var('Prime Repeated Shape:', tf.constant([NUM_SAMPLES, BATCH_SIZE, 1], dtype=tf.int32))
 
     ALPHA_CONSTRAINT = set_var('Alpha bounds:', args.alpha_constraint)
-
+    # Log other settings
+    utils.log_model_settings(log,args)
     # --- End Settings ---
 
-    log.info('Creating training initializer')
+    log.info('--------------------- EXECUTING MODEL ---------------------')
 
     init = TrainingInitializer(NUM_SAMPLES, NUM_STATES, NUM_VARS, COVARIANCE_MATRIX, PHI_0, PHI_1, A0, A1, UNCONDITIONAL_MEAN)
 
     @tf.function
     def initial_prime_function(z): return tf.ones((z.shape[0], 1))
     prime_functions = [initial_prime_function]
-
-    log.info('Initializing alpha')
 
     SIMULATED_STATES, SIMULATED_STATES_MATRIX = init.get_states_simulation()
     alpha = tf.Variable(1*tf.random.uniform((NUM_SAMPLES, NUM_ASSETS)), name='alpha_z', trainable=True, dtype=tf.float32)
