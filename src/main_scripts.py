@@ -12,7 +12,7 @@ def main_full_model(setting_file, HOME_DIR):
     parser.add_argument("--decay_rate_alpha", type=float, default=.5, help="decay of learning rate for alpha training")
 
     parser.add_argument("--iter_per_epoch", type=int, default=50, help="alpha iterations per epoch")
-    parser.add_argument("--num_epochs_alpha", type=int, default=4, help="alpha number of epochs")
+    parser.add_argument("--num_epochs_alpha", type=int, default=50, help="alpha number of epochs")
     parser.add_argument("--num_epochs", type=int, default=100_000, help="number of epochs training")
     parser.add_argument('--alpha_constraint', type=str, choices=['retail-relu', 'sum-to-1'], default='sum-to-1', help='constraints for alpha')
 
