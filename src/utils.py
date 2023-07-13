@@ -31,7 +31,7 @@ def unpack_mars_settings(MARS_FILE: dict, dtype=tf.float32) -> MarsReturnType:
 
 # FIX: type warnings
 def get_model_settings(settings: MarsReturnType, MARS_FILE: dict) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-    _, NUM_VARS, NUM_ASSETS, NUM_STATES, _, _, PHI_0, PHI_1, SIGMA_VARS, _, P, _ = settings
+    _, NUM_VARS, NUM_ASSETS, NUM_STATES, PHI_0, PHI_1, SIGMA_VARS, _, P, _ ,_,_= settings
     COVARIANCE_MATRIX: tf.Tensor = tf.concat([tf.cast(tf.linalg.cholesky(SIGMA_VARS[:NUM_VARS, :NUM_VARS]), tf.float32), tf.zeros((NUM_STATES-NUM_VARS, NUM_VARS), tf.float32)], axis=0)
 
     tf.test.TestCase().assertAllClose(tf.matmul(COVARIANCE_MATRIX, COVARIANCE_MATRIX, transpose_b=True), MARS_FILE["parameters"]["Sigma_vC"][0][0])
